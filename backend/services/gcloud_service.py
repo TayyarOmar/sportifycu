@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List
 from math import radians, sin, cos, sqrt, atan2
 
 # from googleapiclient.discovery import build # Potentially needed
@@ -9,7 +9,7 @@ from ..schemas import GymNearbyResponse # For structuring the output
 
 # Attempt to import Google API client libraries
 try:
-    from googleapiclient.discovery import build
+    # Removed unused import: from googleapiclient.discovery import build
     from google.auth.exceptions import DefaultCredentialsError
     GOOGLE_API_AVAILABLE = True
 except ImportError:

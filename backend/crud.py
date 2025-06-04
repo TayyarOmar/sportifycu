@@ -1,8 +1,8 @@
 from typing import List, Optional, Dict, Any
 from tinydb import Query
-from .database import UserTable, GymTable, GroupActivityTeamTable, db
-from .models import User, Gym, GroupActivityTeam, ActivityLog, Subscription
-from .schemas import UserCreate, UserUpdate # For type hinting where appropriate
+from .database import UserTable, GymTable, GroupActivityTeamTable
+from .models import User, Gym, GroupActivityTeam, ActivityLog
+from .schemas import UserCreate # For type hinting where appropriate
 from .auth import get_password_hash # For user creation
 import uuid
 

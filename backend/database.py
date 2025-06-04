@@ -1,6 +1,4 @@
-from tinydb import TinyDB, table
-from tinydb.middlewares import CachingMiddleware
-from tinydb.storages import JSONStorage
+from tinydb import TinyDB
 from .config import settings
 
 # Using CachingMiddleware for performance

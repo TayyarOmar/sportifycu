@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Body, Query
+from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Body, Query
 from pydantic import EmailStr, BaseModel # BaseModel for local schemas
 from typing import Optional
+from datetime import timedelta 
 
-from .. import crud, schemas, auth, models
+from .. import crud, schemas, auth
 from ..services import email_service
 from ..config import settings
 
@@ -181,7 +182,4 @@ async def confirm_password_reset(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not update password."
         )
-    return schemas.MessageResponse(message="Password has been reset successfully.")
-
-# Need to import timedelta for access_token_expires
-from datetime import timedelta 
+    return schemas.MessageResponse(message="Password has been reset successfully.") 

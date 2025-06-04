@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Optional
 
-from .. import crud, schemas, models
-from ..dependencies import get_current_active_user # For protecting routes if needed, or open
+from .. import crud, schemas
 from ..services import gcloud_service # For finding nearby gyms
 
 router = APIRouter(

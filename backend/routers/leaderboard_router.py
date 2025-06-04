@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List, Dict, Any
+from fastapi import APIRouter, Query
+from typing import List
 
-from .. import crud, schemas, models # models might not be directly needed here
-from ..dependencies import get_current_active_user # To protect if needed, or for context
+from .. import crud, schemas # models might not be directly needed here
 
 router = APIRouter(
     prefix="/api/v1/leaderboards",

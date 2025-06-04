@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Optional
 from pydantic import EmailStr
 import smtplib
 from email.mime.text import MIMEText

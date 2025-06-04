@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from typing import Optional
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -7,7 +7,6 @@ import pyotp
 
 from .config import settings
 from .schemas import TokenData
-from .models import User # To fetch user for 2FA key etc.
 
 # Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

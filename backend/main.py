@@ -4,8 +4,6 @@ from fastapi.staticfiles import StaticFiles # Import StaticFiles
 import os # For path joining
 
 from .routers import auth_router, users_router, gyms_router, activity_teams_router, leaderboard_router
-from .database import db # db instance, not strictly needed here unless for shutdown events etc.
-from .config import settings # For app metadata or other configs if needed
 
 # Potentially, define app metadata
 app_metadata = {

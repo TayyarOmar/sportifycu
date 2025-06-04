@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from typing import List, Dict, Any
-from datetime import date # For adding activity log
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
 from pydantic import BaseModel # Added for NotificationSettingsPayload
 
-from .. import crud, schemas, models, auth # auth might be needed for password change if part of profile
+from .. import crud, schemas, models # auth might be needed for password change if part of profile
 from ..dependencies import get_current_active_user
 from ..utils import calculate_activity_score # For activity tracking response
 
