@@ -5,6 +5,7 @@ This directory contains comprehensive tests for all API endpoints in the Sportif
 ## Test Coverage
 
 ### Authentication Endpoints (`TestAuthEndpoints`)
+
 - ✅ User signup with 2FA setup
 - ✅ Duplicate email validation
 - ✅ Invalid email format handling
@@ -15,6 +16,7 @@ This directory contains comprehensive tests for all API endpoints in the Sportif
 - ✅ Password reset confirmation
 
 ### User Management Endpoints (`TestUserEndpoints`)
+
 - ✅ Get current user profile
 - ✅ Update user profile
 - ✅ Activity tracking (running, steps, gym time, score)
@@ -25,11 +27,13 @@ This directory contains comprehensive tests for all API endpoints in the Sportif
 - ✅ User achievements
 
 ### Gym Endpoints (`TestGymEndpoints`)
+
 - ✅ Get all gyms
 - ✅ Find nearby gyms (with Google Places API integration)
 - ✅ Invalid coordinates validation
 
 ### Activity Team Endpoints (`TestActivityTeamEndpoints`)
+
 - ✅ Create activity teams with form data and photo upload
 - ✅ Edit activity teams (lister authorization)
 - ✅ Delete activity teams (lister authorization)
@@ -37,14 +41,17 @@ This directory contains comprehensive tests for all API endpoints in the Sportif
 - ✅ Add bookings to teams
 
 ### Leaderboard Endpoints (`TestLeaderboardEndpoints`)
+
 - ✅ Get top users by activity score
 - ✅ Limit parameter validation
 
 ### Security Tests (`TestAuthenticationRequired`)
+
 - ✅ Protected endpoints require authentication
 - ✅ Proper 401 responses for unauthorized access
 
 ### Error Handling Tests (`TestErrorHandling`)
+
 - ✅ 404 for non-existent endpoints
 - ✅ Invalid JSON payload handling
 - ✅ Missing required fields validation
@@ -78,6 +85,7 @@ python -m pytest backend/tests/test_api.py --cov=backend --cov-report=html
 ## Dependencies
 
 The test suite requires:
+
 - `pytest` - Test framework
 - `pytest-asyncio` - Async test support
 - `httpx` - HTTP client for testing
@@ -98,4 +106,4 @@ Tests use a temporary database file that is automatically created and cleaned up
 
 **✅ All 33 tests passing**
 
-The test suite provides comprehensive coverage of all API endpoints and ensures the backend behaves correctly according to the fitness app specifications. 
+The test suite provides comprehensive coverage of all API endpoints and ensures the backend behaves correctly according to the fitness app specifications.

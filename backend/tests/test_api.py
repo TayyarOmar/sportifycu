@@ -53,7 +53,8 @@ def sample_team_data():
         "date_and_time": "2024-12-31T10:00:00",
         "age_range": "18-30",
         "contact_information": "test@contact.com",
-        "players_needed": 5
+        "players_needed": 5,
+        "photo_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="  # Sample base64 image
     }
 
 @pytest.fixture
@@ -277,7 +278,7 @@ class TestUserEndpoints:
                             json={"enabled": False}, headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["notification_setting"] == False
+        assert not data["notification_setting"]
 
     def test_get_user_bookings(self, authenticated_user):
         headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
@@ -348,7 +349,8 @@ class TestActivityTeamEndpoints:
             "date_and_time": sample_team_data["date_and_time"],
             "age_range": sample_team_data["age_range"],
             "contact_information": sample_team_data["contact_information"],
-            "players_needed": sample_team_data["players_needed"]
+            "players_needed": sample_team_data["players_needed"],
+            "photo_base64": sample_team_data["photo_base64"]
         }
         
         response = client.post("/api/v1/activity-teams/", data=form_data, headers=headers)
@@ -369,7 +371,8 @@ class TestActivityTeamEndpoints:
             "date_and_time": sample_team_data["date_and_time"],
             "age_range": sample_team_data["age_range"],
             "contact_information": sample_team_data["contact_information"],
-            "players_needed": sample_team_data["players_needed"]
+            "players_needed": sample_team_data["players_needed"],
+            "photo_base64": sample_team_data["photo_base64"]
         }
         
         create_response = client.post("/api/v1/activity-teams/", data=form_data, headers=headers)
@@ -395,7 +398,8 @@ class TestActivityTeamEndpoints:
             "date_and_time": sample_team_data["date_and_time"],
             "age_range": sample_team_data["age_range"],
             "contact_information": sample_team_data["contact_information"],
-            "players_needed": sample_team_data["players_needed"]
+            "players_needed": sample_team_data["players_needed"],
+            "photo_base64": sample_team_data["photo_base64"]
         }
         
         create_response = client.post("/api/v1/activity-teams/", data=form_data, headers=headers)
@@ -417,7 +421,8 @@ class TestActivityTeamEndpoints:
             "date_and_time": sample_team_data["date_and_time"],
             "age_range": sample_team_data["age_range"],
             "contact_information": sample_team_data["contact_information"],
-            "players_needed": sample_team_data["players_needed"]
+            "players_needed": sample_team_data["players_needed"],
+            "photo_base64": sample_team_data["photo_base64"]
         }
         
         client.post("/api/v1/activity-teams/", data=form_data, headers=headers)
