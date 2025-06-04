@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from pydantic import EmailStr
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 

@@ -1,37 +1,11 @@
 from typing import List
 from math import radians, sin, cos, sqrt, atan2
-
-# from googleapiclient.discovery import build # Potentially needed
-# from google.oauth2 import service_account # If using service account credentials
+import httpx # Import httpx for asynchronous HTTP requests
+from fuzzywuzzy import fuzz # For fuzzy string matching
 
 from ..config import settings # Corrected relative import
 from ..schemas import GymNearbyResponse # For structuring the output
-
-# Attempt to import Google API client libraries
-try:
-    # Removed unused import: from googleapiclient.discovery import build
-    from google.auth.exceptions import DefaultCredentialsError
-    GOOGLE_API_AVAILABLE = True
-except ImportError:
-    GOOGLE_API_AVAILABLE = False
-    print("WARNING: google-api-python-client or google-auth not installed. GCloud service will use mock data.")
-    print("Please install with: uv pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib")
-
-# Placeholder for Google API client initialization
-# def get_places_service():
-#     # This would initialize the Google Places API client
-#     # Requires GOOGLE_API_KEY to be set in .env
-#     # Example (conceptual):
-#     # if settings.GOOGLE_API_KEY == "your_google_maps_api_key" or not settings.GOOGLE_API_KEY:
-#     #     print("Google API Key not configured. GCloud services will be mocked.")
-#     #     return None
-#     # try:
-#     #     service = build("places", "v1", developerKey=settings.GOOGLE_API_KEY) # This is conceptual
-#     #     return service
-#     # except Exception as e:
-#     #     print(f"Error initializing Google Places service: {e}")
-#     #     return None
-#     return None # Placeholder
+from .. import crud # Import crud to access database operations
 
 def calculate_distance_haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
@@ -57,12 +31,16 @@ def calculate_distance_haversine(lat1: float, lon1: float, lat2: float, lon2: fl
 
 async def find_nearby_gyms(latitude: float, longitude: float, radius_meters: int = 5000) -> List[GymNearbyResponse]:
     """
-    Connects to Google Places API to find nearby gyms.
+    Connects to Google Places API (Nearby Search) to find nearby gyms.
     Returns a list of gyms with their details, including distance.
+    
+    Note: This uses the classic Google Places API (Nearby Search) via direct HTTPX calls.
+          For richer details or the newer Places API (New), additional API calls (e.g., Place Details)
+          or a different client library/approach might be needed.
     """
-    if not GOOGLE_API_AVAILABLE or settings.GOOGLE_API_KEY == "your_google_maps_api_key" or not settings.GOOGLE_API_KEY:
-        print(f"GCloud service: find_nearby_gyms using MOCK DATA for lat={latitude}, lon={longitude}.")
-        print("Ensure GOOGLE_API_KEY is set and google-api-python-client libraries are installed.")
+    if not settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY == "your_google_maps_api_key":
+        print("GCloud service: find_nearby_gyms using MOCK DATA for lat={latitude}, lon={longitude}.")
+        print("Ensure GOOGLE_API_KEY is set in .env to use actual Google Places API.")
         # Return mock data structured as GymNearbyResponse
         mock_gym_list = [
             GymNearbyResponse(
@@ -80,89 +58,90 @@ async def find_nearby_gyms(latitude: float, longitude: float, radius_meters: int
                 services=["Powerlifting", "Strongman Equipment"], distance=3.5
             )
         ]
-        # Filter mock data by distance conceptually
-        return [gym for gym in mock_gym_list if gym.distance and gym.distance <= radius_meters / 1000]
+        # Filter mock data by distance conceptually (max 10km)
+        return [gym for gym in mock_gym_list if gym.distance and gym.distance <= 10] # 10km limit for mock data
 
-    try:
-        # Note: The 'places' API name and version might change. Refer to Google Cloud documentation.
-        # Using the older "customsearch" as a generic example of building a service.
-        # For Google Places API (New), you'd typically use a specific client library or REST calls.
-        # Let's assume a direct REST API call approach for Places API for simplicity if client is complex.
-        # However, the `google-api-python-client` is generally for services like Drive, Calendar, etc.
-        # For Places API, direct HTTP requests with `httpx` or `aiohttp` are often preferred in async Python.
-
-        # Simulating a direct API call structure if google-api-python-client isn't ideal for "Places API (New)"
-        # For this example, we will stick to trying to use `build` if it were a service listed.
-        # The "places" service might not be available via `build` in this manner.
-        # If it's not, this block will fail and fall back to mock.
-        
-        # This is a conceptual placeholder for using the 'build' function.
-        # Actual Places API (especially the newer versions) might require direct HTTP calls or a different client.
-        # service = build("places", "v1", developerKey=settings.GOOGLE_API_KEY, static_discovery=False) # Fictional
-        
-        # Given the complexity and potential for `build` not supporting Places API directly in this way,
-        # we will print a message and fall back to mock if it's not straightforward.
-        # A production implementation would use `httpx` or `requests` for direct REST calls to Places API.
-        
-        print(f"Attempting Google Places API call for ({latitude}, {longitude})")
-        print("Note: The following is a simplified conceptualisation of using the Google Places API.")
-        print("A robust implementation would use `httpx` or `requests` for direct REST calls.")
-        
-        # This is where you'd make the actual API call.
-        # Example of what the call might look like (conceptual, actual API may differ):
-        # request = service.places().searchNearby( # This is a hypothetical method
-        #     location=f'{latitude},{longitude}',
-        #     radius=radius_meters,
-        #     type='gym', # Or keyword='gym'
-        #     fields='places.id,places.displayName,places.formattedAddress,places.location,places.websiteUri'
-        # ).execute() # This is a blocking call, in async, use await loop.run_in_executor
-
-        # For now, as a placeholder for actual API call logic and because `build` might not work for Places easily:
-        raise NotImplementedError("Actual Google Places API call via `build` is complex; direct HTTP request is typical.")
-
-    except DefaultCredentialsError:
-        print("Google API: DefaultCredentialsError. Ensure your environment is authenticated or API key is valid.")
-        # Fallback to mock data
-        return await find_nearby_gyms(latitude, longitude, radius_meters) # Recursive call to get mock
-    except NotImplementedError as e:
-        print(f"Google API: {e}. Falling back to mock data.")
-        return await find_nearby_gyms(latitude, longitude, radius_meters) # Recursive call to get mock
-    except Exception as e:
-        print(f"Error connecting to Google Places API or processing results: {e}")
-        # Fallback to mock data in case of any other error during API interaction
-        return await find_nearby_gyms(latitude, longitude, radius_meters) # Recursive call to get mock
-
-    # Assuming `api_results` is a list of place data from the API
-    # api_results = request.get('places', []) # Example if 'places' is the key in response
-    api_results_placeholder = [] # Replace with actual API call results
+    # Actual Google Places API (Nearby Search) call using httpx
+    BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    params = {
+        "location": f"{latitude},{longitude}",
+        "radius": 10000, # Max radius for Nearby Search is 50,000 meters, but 10km is requested
+        "type": "gym", # Use 'gym' or 'fitness_center'
+        "key": settings.GOOGLE_API_KEY,
+    }
 
     processed_gyms: List[GymNearbyResponse] = []
-    for place in api_results_placeholder:
-        place_lat = place.get('location', {}).get('latitude')
-        place_lng = place.get('location', {}).get('longitude')
-        
-        if not place_lat or not place_lng:
-            continue
+    db_gyms = crud.get_all_gyms_db() # Get all gyms from our database
+    FUZZY_MATCH_THRESHOLD = 70 # Adjust as needed
 
-        dist_km = calculate_distance_haversine(latitude, longitude, place_lat, place_lng)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(BASE_URL, params=params, timeout=10.0)
+            response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
+            data = response.json()
 
-        if dist_km * 1000 <= radius_meters:
-            # Map API fields to your GymNearbyResponse schema
-            # This requires knowing the exact structure of the Google Places API response
-            gym_response = GymNearbyResponse(
-                gym_id=place.get('id', f"pid_{place_lat}_{place_lng}"), # place.id or place.name
-                name=place.get('displayName', {}).get('text', 'N/A') if isinstance(place.get('displayName'), dict) else place.get('displayName', 'N/A'),
-                location=place.get('formattedAddress', 'Address not available'),
-                location_url=place.get('websiteUri', None), # Or construct Google Maps URL
-                # These fields would need to be fetched or defaulted if not directly from Places API basic search
-                token_per_visit=None, 
-                genders_accepted=[], 
-                subscriptions=[], 
-                services=[], 
-                distance=dist_km
-            )
-            processed_gyms.append(gym_response)
-            
+            if data.get("status") == "OK":
+                for place in data.get("results", []):
+                    place_name = place.get("name", "N/A")
+                    place_address = place.get("vicinity", "Address not available")
+                    
+                    geometry = place.get("geometry", {}).get("location", {})
+                    place_lat = geometry.get("lat")
+                    place_lng = geometry.get("lng")
+
+                    if place_lat is None or place_lng is None:
+                        continue # Skip if no valid coordinates
+
+                    dist_km = calculate_distance_haversine(latitude, longitude, place_lat, place_lng)
+
+                    # Attempt to find a matching gym in our database using fuzzy matching
+                    matched_db_gym = None
+                    best_score = -1
+                    for db_gym in db_gyms:
+                        score = fuzz.ratio(place_name.lower(), db_gym.name.lower())
+                        if score > best_score and score >= FUZZY_MATCH_THRESHOLD:
+                            best_score = score
+                            matched_db_gym = db_gym
+                    
+                    if matched_db_gym:
+                        # Use data from our database for the gym, but keep Google's distance
+                        gym_response = GymNearbyResponse(
+                            gym_id=matched_db_gym.gym_id,
+                            name=matched_db_gym.name,
+                            location=matched_db_gym.location,
+                            location_url=matched_db_gym.location_url,
+                            token_per_visit=matched_db_gym.token_per_visit,
+                            genders_accepted=matched_db_gym.genders_accepted,
+                            subscriptions=matched_db_gym.subscriptions,
+                            services=matched_db_gym.services,
+                            distance=dist_km # Keep distance from Google API
+                        )
+                    else:
+                        # Use data from Google Places API (no match in our DB)
+                        gym_response = GymNearbyResponse(
+                            gym_id=place.get("place_id", ""), 
+                            name=place_name,
+                            location=place_address,
+                            location_url=f"https://maps.google.com/?q={place_name},{place_address}", 
+                            token_per_visit=None,
+                            genders_accepted=[],
+                            subscriptions=[],
+                            services=[],
+                            distance=dist_km
+                        )
+                    processed_gyms.append(gym_response)
+            elif data.get("status") == "ZERO_RESULTS":
+                print(f"Google Places API: No gyms found near ({latitude}, {longitude}).")
+            else:
+                print(f"Google Places API Error: {data.get("status")}. Message: {data.get("error_message", "No error message provided.")}")
+
+    except httpx.RequestError as e:
+        print(f"HTTPX request error during Google Places API call: {e}")
+    except httpx.HTTPStatusError as e:
+        print(f"HTTP error {e.response.status_code} response during Google Places API call: {e.response.text}")
+    except Exception as e:
+        print(f"An unexpected error occurred during Google Places API call: {e}")
+    
     return processed_gyms
 
 # Note on Google Places API:
