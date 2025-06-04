@@ -2,12 +2,15 @@ from tinydb import TinyDB
 from tinydb.storages import JSONStorage
 from datetime import datetime, date
 import json
+from pydantic import HttpUrl
 from .config import settings
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime, date)):
             return obj.isoformat()
+        elif isinstance(obj, HttpUrl):
+            return str(obj)
         return super().default(obj)
 
 class CustomJSONStorage(JSONStorage):

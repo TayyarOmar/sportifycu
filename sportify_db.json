@@ -1,1 +1,436 @@
-{"users": {}, "gyms": {}, "group_activity_teams": {}}
+{
+    "users": {
+        "1": {
+            "user_id": "eb397321-87b4-44ba-8034-a38128d5a844",
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "hashed_password": "$2b$12$A/ZIPQXpq45yPbSjcp47weNwyQCZ8z8GfJVBHaDp/eNpTjci/PCPu",
+            "gender": "Male",
+            "age": 28,
+            "fitness_goals": [
+                "Weight Loss",
+                "Muscle Gain",
+                "Endurance Training",
+                "Flexibility",
+                "Stress Relief"
+            ],
+            "two_fa_key": "MCGA5W5UEX3MG7J7IIUZIU523PMCFV22",
+            "is_2fa_enabled": true,
+            "tracked_activities": [
+                {
+                    "date": "2024-01-15",
+                    "activity_type": "running",
+                    "value": 5.2,
+                    "unit": "km"
+                },
+                {
+                    "date": "2024-01-17",
+                    "activity_type": "running",
+                    "value": 3.8,
+                    "unit": "km"
+                },
+                {
+                    "date": "2024-01-20",
+                    "activity_type": "running",
+                    "value": 7.5,
+                    "unit": "km"
+                },
+                {
+                    "date": "2024-01-15",
+                    "activity_type": "steps",
+                    "value": 12500.0,
+                    "unit": "steps"
+                },
+                {
+                    "date": "2024-01-16",
+                    "activity_type": "steps",
+                    "value": 8900.0,
+                    "unit": "steps"
+                },
+                {
+                    "date": "2024-01-17",
+                    "activity_type": "steps",
+                    "value": 15200.0,
+                    "unit": "steps"
+                },
+                {
+                    "date": "2024-01-18",
+                    "activity_type": "steps",
+                    "value": 6800.0,
+                    "unit": "steps"
+                },
+                {
+                    "date": "2024-01-16",
+                    "activity_type": "gym_time",
+                    "value": 75.0,
+                    "unit": "minutes"
+                },
+                {
+                    "date": "2024-01-18",
+                    "activity_type": "gym_time",
+                    "value": 60.0,
+                    "unit": "minutes"
+                },
+                {
+                    "date": "2024-01-19",
+                    "activity_type": "gym_time",
+                    "value": 90.0,
+                    "unit": "minutes"
+                },
+                {
+                    "date": "2024-01-21",
+                    "activity_type": "gym_time",
+                    "value": 45.0,
+                    "unit": "minutes"
+                }
+            ],
+            "favourites": [],
+            "achievements": [
+                "First Workout",
+                "10K Steps",
+                "5K Runner",
+                "Gym Regular",
+                "Early Bird"
+            ],
+            "notification_setting": true,
+            "bookings": []
+        }
+    },
+    "gyms": {
+        "1": {
+            "gym_id": "d01047c0-1940-41d2-92c3-a3354b832ab2",
+            "name": "FitLife Premium Fitness Center",
+            "location": "123 Main Street, Downtown, City Center",
+            "location_url": "https://maps.google.com/place/fitlife",
+            "token_per_visit": 15.5,
+            "genders_accepted": [
+                "Male",
+                "Female"
+            ],
+            "subscriptions": [
+                {
+                    "name": "Basic Monthly",
+                    "length": "1 month",
+                    "price": 49.99
+                },
+                {
+                    "name": "Premium Monthly",
+                    "length": "1 month",
+                    "price": 79.99
+                },
+                {
+                    "name": "Basic Annual",
+                    "length": "12 months",
+                    "price": 499.99
+                },
+                {
+                    "name": "Premium Annual",
+                    "length": "12 months",
+                    "price": 799.99
+                },
+                {
+                    "name": "Student Monthly",
+                    "length": "1 month",
+                    "price": 29.99
+                }
+            ],
+            "services": [
+                "Free Weights",
+                "Weight Machines",
+                "Cardio Equipment",
+                "Functional Training Area",
+                "Yoga Classes",
+                "Pilates Classes",
+                "Zumba Classes",
+                "Spin Classes",
+                "CrossFit Training",
+                "HIIT Classes",
+                "Swimming Pool",
+                "Sauna",
+                "Steam Room",
+                "Locker Rooms",
+                "Showers",
+                "Parking",
+                "Personal Training",
+                "Group Training",
+                "Nutrition Counseling",
+                "Fitness Assessment",
+                "Towel Service",
+                "Smoothie Bar",
+                "Childcare",
+                "WiFi"
+            ]
+        },
+        "2": {
+            "gym_id": "ebcd5e33-1fb1-4fee-aeca-27aad891422d",
+            "name": "Her Strength Women's Fitness Studio",
+            "location": "456 Oak Avenue, Uptown District",
+            "location_url": "https://maps.google.com/place/herstrength",
+            "token_per_visit": 12.0,
+            "genders_accepted": [
+                "Female"
+            ],
+            "subscriptions": [
+                {
+                    "name": "Monthly Unlimited",
+                    "length": "1 month",
+                    "price": 89.99
+                },
+                {
+                    "name": "3-Month Package",
+                    "length": "3 months",
+                    "price": 239.99
+                },
+                {
+                    "name": "Annual Membership",
+                    "length": "12 months",
+                    "price": 899.99
+                },
+                {
+                    "name": "Drop-in Class",
+                    "length": "1 day",
+                    "price": 25.0
+                }
+            ],
+            "services": [
+                "Prenatal Fitness",
+                "Postnatal Recovery",
+                "Women's Strength Training",
+                "Barre Classes",
+                "Yoga",
+                "Meditation",
+                "Pilates",
+                "Tai Chi",
+                "Dance Fitness",
+                "Kickboxing",
+                "Circuit Training",
+                "Private Changing Rooms",
+                "Nursing Room",
+                "Childcare",
+                "Healthy Cafe",
+                "Personal Training",
+                "Nutritionist Consultation",
+                "Massage Therapy",
+                "Beauty Services"
+            ]
+        },
+        "3": {
+            "gym_id": "dafd37b9-01e9-4bc0-97cd-d29c7079f463",
+            "name": "24/7 Fitness Express",
+            "location": "789 Industrial Blvd, Suburb Area",
+            "location_url": "https://maps.google.com/place/247fitness",
+            "token_per_visit": 8.99,
+            "genders_accepted": [
+                "Unisex"
+            ],
+            "subscriptions": [
+                {
+                    "name": "Basic Access",
+                    "length": "1 month",
+                    "price": 19.99
+                },
+                {
+                    "name": "Premium Access",
+                    "length": "1 month",
+                    "price": 29.99
+                },
+                {
+                    "name": "Annual Basic",
+                    "length": "12 months",
+                    "price": 199.99
+                },
+                {
+                    "name": "Annual Premium",
+                    "length": "12 months",
+                    "price": 299.99
+                }
+            ],
+            "services": [
+                "Cardio Machines",
+                "Free Weights",
+                "Weight Machines",
+                "Stretching Area",
+                "24/7 Access",
+                "Keycard Entry",
+                "Security Cameras",
+                "Locker Rooms",
+                "Showers",
+                "Water Fountains",
+                "Free Parking",
+                "Virtual Classes",
+                "Weekend Group Sessions"
+            ]
+        },
+        "4": {
+            "gym_id": "5f970703-d0f6-4900-980a-f7acdb7dcb94",
+            "name": "Iron Fist Combat Academy",
+            "location": "321 Fighter's Way, Sports District",
+            "location_url": "https://maps.google.com/place/ironfist",
+            "token_per_visit": 20.0,
+            "genders_accepted": [
+                "Male",
+                "Female"
+            ],
+            "subscriptions": [
+                {
+                    "name": "Beginner Package",
+                    "length": "1 month",
+                    "price": 99.99
+                },
+                {
+                    "name": "Intermediate Package",
+                    "length": "1 month",
+                    "price": 129.99
+                },
+                {
+                    "name": "Advanced Fighter",
+                    "length": "1 month",
+                    "price": 159.99
+                },
+                {
+                    "name": "Competition Prep",
+                    "length": "3 months",
+                    "price": 449.99
+                }
+            ],
+            "services": [
+                "Boxing Training",
+                "Muay Thai",
+                "Brazilian Jiu-Jitsu",
+                "Mixed Martial Arts (MMA)",
+                "Kickboxing",
+                "Wrestling",
+                "Heavy Bags",
+                "Speed Bags",
+                "Boxing Ring",
+                "Grappling Mats",
+                "Strength Training Equipment",
+                "Private Coaching",
+                "Group Classes",
+                "Sparring Sessions",
+                "Competition Training",
+                "Men's Locker Room",
+                "Women's Locker Room",
+                "Recovery Area",
+                "Pro Shop",
+                "Fight Preparation",
+                "Technique Analysis",
+                "Conditioning Programs"
+            ]
+        },
+        "5": {
+            "gym_id": "9c24e97c-978c-428a-bf00-6ed92d5b1de8",
+            "name": "Zenith Wellness & Spa",
+            "location": "555 Luxury Lane, Elite District",
+            "location_url": "https://maps.google.com/place/zenithwellness",
+            "token_per_visit": 35.0,
+            "genders_accepted": [
+                "Male",
+                "Female"
+            ],
+            "subscriptions": [
+                {
+                    "name": "Wellness Monthly",
+                    "length": "1 month",
+                    "price": 199.99
+                },
+                {
+                    "name": "Elite Monthly",
+                    "length": "1 month",
+                    "price": 299.99
+                },
+                {
+                    "name": "Platinum Annual",
+                    "length": "12 months",
+                    "price": 2999.99
+                },
+                {
+                    "name": "Corporate Package",
+                    "length": "12 months",
+                    "price": 3999.99
+                }
+            ],
+            "services": [
+                "State-of-the-Art Equipment",
+                "Personal Training",
+                "Small Group Training",
+                "Functional Movement",
+                "Hot Yoga",
+                "Meditation Classes",
+                "Breathwork Sessions",
+                "Mindfulness Training",
+                "Massage Therapy",
+                "Facial Treatments",
+                "Body Treatments",
+                "Acupuncture",
+                "Cryotherapy",
+                "Infinity Pool",
+                "Jacuzzi",
+                "Steam Room",
+                "Sauna",
+                "Salt Room",
+                "Relaxation Lounge",
+                "Valet Parking",
+                "Concierge Service",
+                "Healthy Restaurant",
+                "Juice Bar",
+                "Retail Boutique",
+                "Towel and Robe Service",
+                "Executive Fitness",
+                "Stress Management",
+                "Sleep Optimization",
+                "Nutrition Coaching"
+            ]
+        }
+    },
+    "group_activity_teams": {
+        "1": {
+            "team_id": "4452be88-f32f-43cf-9d91-67639444a1ee",
+            "lister_id": "system-admin",
+            "name": "Morning Joggers Club",
+            "description": "A friendly running group for beginners who want to start their fitness journey. We focus on building endurance gradually with a supportive community atmosphere. Perfect for those who have never run before or are getting back into fitness.",
+            "category": "Running",
+            "location": "Central Park Main Loop",
+            "date_and_time": "2024-02-05T07:00:00",
+            "age_range": "18-65",
+            "contact_information": "sarah.johnson@email.com or call (555) 123-4567",
+            "players_needed": 15,
+            "current_players_count": 0,
+            "players_enrolled": [],
+            "status": "active",
+            "photo_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        "2": {
+            "team_id": "a09cffa3-d536-4b20-b221-3878f0f1124c",
+            "lister_id": "system-admin",
+            "name": "Elite CrossFit Warriors",
+            "description": "High-intensity CrossFit training for experienced athletes. This class focuses on Olympic lifts, metabolic conditioning, and advanced movement patterns. Participants should have at least 6 months of CrossFit experience.",
+            "category": "CrossFit",
+            "location": "Iron Fist Combat Academy - CrossFit Area",
+            "date_and_time": "2024-02-06T18:30:00",
+            "age_range": "21-45",
+            "contact_information": "mike.rodriguez@ironfist.com or (555) 987-6543",
+            "players_needed": 12,
+            "current_players_count": 0,
+            "players_enrolled": [],
+            "status": "active",
+            "photo_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        },
+        "3": {
+            "team_id": "25fcbadf-6be4-4c66-8f82-09dd066684f5",
+            "lister_id": "system-admin",
+            "name": "Sunset Yoga Flow",
+            "description": "A peaceful yoga class suitable for all skill levels. We practice various yoga styles including Hatha, Vinyasa, and restorative poses. The class focuses on flexibility, strength, and mindfulness in a welcoming environment.",
+            "category": "Yoga",
+            "location": "Her Strength Women's Fitness Studio - Yoga Room",
+            "date_and_time": "2024-02-07T18:00:00",
+            "age_range": "Any",
+            "contact_information": "emma.chen@herstrength.com or (555) 456-7890",
+            "players_needed": 20,
+            "current_players_count": 0,
+            "players_enrolled": [],
+            "status": "active",
+            "photo_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+        }
+    }
+}

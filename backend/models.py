@@ -62,8 +62,8 @@ class GroupActivityTeam(BaseModel):
     current_players_count: int = 0
     players_enrolled: List[str] = Field(default_factory=list) # List of user_ids
     status: str = "active"  # e.g., "active", "filled", "cancelled"
-    photo_url: Optional[HttpUrl] = None # URL to the photo, if uploaded to a service
-    # photo_base64: Optional[str] = None # If storing as base64 directly in DB (not recommended for large images)
+    photo_base64: Optional[str] = None # Base64 encoded photo data
+    # photo_url: Optional[HttpUrl] = None # URL to the photo, if uploaded to a service
 
 # For TinyDB, we might not need explicit "Table" models if we use Pydantic for validation
 # and structure within the list of documents each table holds. 
