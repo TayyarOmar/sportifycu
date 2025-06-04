@@ -3,6 +3,7 @@ from pydantic import EmailStr
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 
 from ..config import settings # Use .. to go up one level to the backend package root
+from ..auth import CODE_EXPIRY_MINUTES # Assuming auth.py is in the same directory level as services/
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -43,47 +44,42 @@ async def send_email_async(
     except Exception as e:
         print(f"Failed to send email to {recipient_to}: {e}")
 
-async def send_2fa_login_email(email_to: EmailStr, token: str):
+async def send_2fa_login_email(email_to: EmailStr, code: str):
     project_name = "Sportify App"
-    subject = f"[{project_name}] Your 2FA Login Link"
-    # Frontend URL should be configurable
-    link = f"http://localhost:3000/verify-2fa?token={token}" # Example frontend URL
+    subject = f"[{project_name}] Your 2FA Login Code"
     
     body_html = f"""
     <html>
         <body>
             <p>Hello,</p>
-            <p>Please click the link below to complete your login for {project_name}:</p>
-            <p><a href=\"{link}\">Complete Login</a></p>
-            <p>This link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.</p>
+            <p>Your 2FA login code for {project_name} is: <strong>{code}</strong></p>
+            <p>This code will expire in {CODE_EXPIRY_MINUTES} minutes.</p>
             <p>If you did not request this, please ignore this email.</p>
         </body>
     </html>
     """
-    body_text = f"Hello,\nPlease use the following link to complete your login for {project_name}: {link}\nThis link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.\nIf you did not request this, please ignore this email."
+    body_text = f"Hello,\nYour 2FA login code for {project_name} is: {code}\nThis code will expire in {CODE_EXPIRY_MINUTES} minutes.\nIf you did not request this, please ignore this email."
 
-    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html)
+    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html, body_text=body_text)
 
-async def send_password_reset_email(email_to: EmailStr, token: str):
+async def send_password_reset_email(email_to: EmailStr, code: str):
     project_name = "Sportify App"
-    subject = f"[{project_name}] Your Password Reset Link"
-    link = f"http://localhost:3000/reset-password-confirm?token={token}" # Example frontend URL
+    subject = f"[{project_name}] Your Password Reset Code"
     
     body_html = f"""
     <html>
         <body>
             <p>Hello,</p>
             <p>You requested a password reset for your account with {project_name}.</p>
-            <p>Please click the link below to set a new password:</p>
-            <p><a href=\"{link}\">Reset Password</a></p>
-            <p>This link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.</p>
+            <p>Your password reset code is: <strong>{code}</strong></p>
+            <p>This code will expire in {CODE_EXPIRY_MINUTES} minutes.</p>
             <p>If you did not request a password reset, please ignore this email.</p>
         </body>
     </html>
     """
-    body_text = f"Hello,\nYou requested a password reset for {project_name}. Use this link: {link}\nThis link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.\nIf you didn't request this, ignore this email."
+    body_text = f"Hello,\nYou requested a password reset for {project_name}. Your code is: {code}\nThis code will expire in {CODE_EXPIRY_MINUTES} minutes.\nIf you didn't request this, ignore this email."
 
-    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html)
+    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html, body_text=body_text)
 
 # Note: The current smtplib implementation is blocking. 
 # In a FastAPI async context, it's better to run blocking IO in a thread pool:

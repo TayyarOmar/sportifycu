@@ -58,8 +58,17 @@ class TwoFALoginResponse(BaseModel):
     message: str # e.g., "2FA required, email sent"
     # Optionally, a temporary token if needed before 2FA verification
 
+class VerifyCodeRequest(BaseModel):
+    email: EmailStr
+    code: str
+
 class EmailSchema(BaseModel):
     email: EmailStr
+
+class PasswordResetConfirmWithCodeRequest(BaseModel):
+    email: EmailStr # Include email to ensure code is validated against the correct user
+    code: str
+    new_password: str
 
 # ======== Gym Schemas ========
 class GymCreate(BaseModel):

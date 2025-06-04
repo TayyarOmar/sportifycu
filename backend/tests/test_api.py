@@ -1,25 +1,27 @@
 import pytest
 from fastapi.testclient import TestClient
-from datetime import datetime
+from datetime import datetime, date, timezone, timedelta
 from unittest.mock import patch, AsyncMock
 
 from backend.main import app
 from backend.database import UserTable, GymTable, GroupActivityTeamTable
-from backend.models import Gym, GroupActivityTeam
-from backend import crud, auth
+from backend.models import Gym, GroupActivityTeam, User, ActivityLog
+from backend import crud, auth, schemas
 
 client = TestClient(app)
 
 @pytest.fixture(scope="function")
 def clean_db():
-    """Clean database before each test"""
+    """Clean database and in-memory code store before each test"""
     UserTable.truncate()
     GymTable.truncate()
     GroupActivityTeamTable.truncate()
+    auth.temp_code_store.clear()
     yield
     UserTable.truncate()
     GymTable.truncate()
     GroupActivityTeamTable.truncate()
+    auth.temp_code_store.clear()
 
 @pytest.fixture
 def sample_user_data():
@@ -59,34 +61,33 @@ def sample_team_data():
 
 @pytest.fixture
 def authenticated_user(clean_db, sample_user_data):
-    """Create and authenticate a user, return access token"""
-    # Create user
-    response = client.post("/api/v1/auth/signup", json=sample_user_data)
-    assert response.status_code == 201
-    user_data = response.json()
+    """Create user, simulate 2FA code login, return access token and user details"""
+    # 1. Create user (signup)
+    signup_response = client.post("/api/v1/auth/signup", json=sample_user_data)
+    assert signup_response.status_code == 201
+    user_details_from_signup = signup_response.json()
     
-    # Mock email verification for 2FA login
-    with patch('backend.services.email_service.send_2fa_login_email', new_callable=AsyncMock):
+    # 2. Request 2FA login code (login step 1)
+    with patch('backend.services.email_service.send_2fa_login_email', new_callable=AsyncMock) as mock_send_email:
         login_response = client.post("/api/v1/auth/login", json={
             "email": sample_user_data["email"],
             "password": sample_user_data["password"]
         })
         assert login_response.status_code == 200
+        mock_send_email.assert_called_once() # Ensure email sending was attempted
+        # Get the code directly from the in-memory store for testing (instead of parsing email)
+        sent_code = auth.temp_code_store[sample_user_data["email"]]["code"]
+        assert auth.temp_code_store[sample_user_data["email"]]["type"] == "2fa_login_code"
     
-    # Create verification token manually for testing
-    verification_token = auth.create_verification_token(
-        email=sample_user_data["email"], 
-        token_type="2fa_login_verification"
-    )
-    
-    # Verify 2FA token
-    verify_response = client.get(f"/api/v1/auth/verify-2fa-login?token={verification_token}")
+    # 3. Verify 2FA code (login step 2)
+    verify_payload = {"email": sample_user_data["email"], "code": sent_code}
+    verify_response = client.post("/api/v1/auth/verify-2fa-code", json=verify_payload)
     assert verify_response.status_code == 200
     
     token_data = verify_response.json()
     return {
         "token": token_data["access_token"],
-        "user_id": user_data["user_id"],
+        "user_id": user_details_from_signup["user_id"],
         "email": sample_user_data["email"]
     }
 
@@ -100,11 +101,10 @@ class TestAuthEndpoints:
         assert data["name"] == sample_user_data["name"]
         assert "user_id" in data
         assert "otp_provisioning_uri" in data
+        assert "Email code login also available" in data["message"]
 
     def test_signup_duplicate_email(self, clean_db, sample_user_data):
-        # First signup
         client.post("/api/v1/auth/signup", json=sample_user_data)
-        # Second signup with same email
         response = client.post("/api/v1/auth/signup", json=sample_user_data)
         assert response.status_code == 400
         assert "already registered" in response.json()["detail"]
@@ -119,62 +119,73 @@ class TestAuthEndpoints:
         assert response.status_code == 422
 
     @patch('backend.services.email_service.send_2fa_login_email', new_callable=AsyncMock)
-    def test_login_success(self, mock_email, clean_db, sample_user_data):
-        # Create user first
+    def test_login_sends_2fa_code_email(self, mock_send_email, clean_db, sample_user_data):
         client.post("/api/v1/auth/signup", json=sample_user_data)
         
-        # Login
         response = client.post("/api/v1/auth/login", json={
             "email": sample_user_data["email"],
             "password": sample_user_data["password"]
         })
         assert response.status_code == 200
-        assert "2FA verification required" in response.json()["message"]
-        mock_email.assert_called_once()
+        assert "A 6-digit code has been sent" in response.json()["message"]
+        mock_send_email.assert_called_once() # Check that email sending was called
+        # Further check: code should be in temp_code_store
+        assert sample_user_data["email"] in auth.temp_code_store
+        assert auth.temp_code_store[sample_user_data["email"]]["type"] == "2fa_login_code"
 
     def test_login_invalid_credentials(self, clean_db, sample_user_data):
-        # Create user first
         client.post("/api/v1/auth/signup", json=sample_user_data)
-        
-        # Login with wrong password
         response = client.post("/api/v1/auth/login", json={
             "email": sample_user_data["email"],
             "password": "wrongpassword"
         })
         assert response.status_code == 401
 
-    def test_verify_2fa_login_success(self, clean_db, sample_user_data):
-        # Create user
-        client.post("/api/v1/auth/signup", json=sample_user_data)
+    def test_verify_2fa_login_code_success(self, clean_db, sample_user_data):
+        client.post("/api/v1/auth/signup", json=sample_user_data) # Signup user
+        # Manually create and store code for testing this endpoint directly
+        test_email = sample_user_data["email"]
+        test_code = auth.create_email_verification_code(email=test_email, code_type="2fa_login_code")
         
-        # Create verification token
-        token = auth.create_verification_token(
-            email=sample_user_data["email"], 
-            token_type="2fa_login_verification"
-        )
-        
-        # Verify token
-        response = client.get(f"/api/v1/auth/verify-2fa-login?token={token}")
+        payload = {"email": test_email, "code": test_code}
+        response = client.post("/api/v1/auth/verify-2fa-code", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert "access_token" in data
         assert data["token_type"] == "bearer"
 
-    def test_verify_2fa_login_invalid_token(self, clean_db):
-        response = client.get("/api/v1/auth/verify-2fa-login?token=invalid_token")
+    def test_verify_2fa_login_code_invalid_code(self, clean_db, sample_user_data):
+        client.post("/api/v1/auth/signup", json=sample_user_data)
+        payload = {"email": sample_user_data["email"], "code": "000000"} # Incorrect code
+        response = client.post("/api/v1/auth/verify-2fa-code", json=payload)
         assert response.status_code == 400
+        assert "Invalid or expired 2FA login code" in response.json()["detail"]
+
+    def test_verify_2fa_login_code_expired(self, clean_db, sample_user_data):
+        client.post("/api/v1/auth/signup", json=sample_user_data)
+        test_email = sample_user_data["email"]
+        test_code = auth.create_email_verification_code(email=test_email, code_type="2fa_login_code")
+        
+        # Manually expire the code in the store
+        auth.temp_code_store[test_email]["expires_at"] = datetime.now(timezone.utc) - timedelta(minutes=1)
+        
+        payload = {"email": test_email, "code": test_code}
+        response = client.post("/api/v1/auth/verify-2fa-code", json=payload)
+        assert response.status_code == 400
+        assert "Invalid or expired 2FA login code" in response.json()["detail"]
 
     @patch('backend.services.email_service.send_password_reset_email', new_callable=AsyncMock)
-    def test_request_password_reset_success(self, mock_email, clean_db, sample_user_data):
-        # Create user
+    def test_request_password_reset_sends_code_email(self, mock_send_email, clean_db, sample_user_data):
         client.post("/api/v1/auth/signup", json=sample_user_data)
         
-        # Request password reset
         response = client.post("/api/v1/auth/request-password-reset", json={
             "email": sample_user_data["email"]
         })
         assert response.status_code == 200
-        mock_email.assert_called_once()
+        assert "Password reset code sent" in response.json()["message"]
+        mock_send_email.assert_called_once()
+        assert sample_user_data["email"] in auth.temp_code_store
+        assert auth.temp_code_store[sample_user_data["email"]]["type"] == "password_reset_code"
 
     def test_request_password_reset_user_not_found(self, clean_db):
         response = client.post("/api/v1/auth/request-password-reset", json={
@@ -182,22 +193,44 @@ class TestAuthEndpoints:
         })
         assert response.status_code == 404
 
-    def test_confirm_password_reset_success(self, clean_db, sample_user_data):
-        # Create user
+    def test_confirm_password_reset_with_code_success(self, clean_db, sample_user_data):
         client.post("/api/v1/auth/signup", json=sample_user_data)
+        test_email = sample_user_data["email"]
+        reset_code = auth.create_email_verification_code(email=test_email, code_type="password_reset_code")
         
-        # Create password reset token
-        token = auth.create_verification_token(
-            email=sample_user_data["email"], 
-            token_type="password_reset"
-        )
-        
-        # Confirm password reset
-        response = client.post(
-            f"/api/v1/auth/confirm-password-reset?token={token}",
-            json={"new_password": "newpassword123"}
-        )
+        payload = {
+            "email": test_email,
+            "code": reset_code,
+            "new_password": "newpassword123"
+        }
+        response = client.post("/api/v1/auth/confirm-password-reset", json=payload)
         assert response.status_code == 200
+        assert "Password has been reset successfully" in response.json()["message"]
+
+        # Verify old password no longer works
+        login_response = client.post("/api/v1/auth/login", json={
+            "email": test_email,
+            "password": sample_user_data["password"]
+        })
+        assert login_response.status_code == 401 # Should fail with old password
+        
+        # Verify new password works (leads to 2FA code email)
+        login_response_new_pw = client.post("/api/v1/auth/login", json={
+            "email": test_email,
+            "password": "newpassword123"
+        })
+        assert login_response_new_pw.status_code == 200 # New password leads to 2FA step
+
+    def test_confirm_password_reset_invalid_code(self, clean_db, sample_user_data):
+        client.post("/api/v1/auth/signup", json=sample_user_data)
+        payload = {
+            "email": sample_user_data["email"],
+            "code": "000000",
+            "new_password": "newpassword123"
+        }
+        response = client.post("/api/v1/auth/confirm-password-reset", json=payload)
+        assert response.status_code == 400
+        assert "Invalid or expired password reset code" in response.json()["detail"]
 
 class TestUserEndpoints:
     
