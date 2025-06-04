@@ -8,15 +8,14 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sportify_db.json"
     GOOGLE_API_KEY: str = "your_google_maps_api_key"
 
-    # Email settings
-    MAIL_USERNAME: str = "your_email_username"
-    MAIL_PASSWORD: str = "your_email_password"
-    MAIL_FROM: EmailStr = "your_sending_email@example.com"
-    MAIL_PORT: int = 587
-    MAIL_SERVER: str = "smtp.example.com"
-    MAIL_STARTTLS: bool = True
-    MAIL_SSL_TLS: bool = False
-
+    # Email settings for Gmail
+    MAIL_USERNAME: str = "sportifyapp2025@gmail.com" # Your full Gmail address
+    MAIL_PASSWORD: str = "ntybuzyjsmfsvgmj" # <<< IMPORTANT: Use an App Password, not your regular password!
+    MAIL_FROM: EmailStr = "sportifyapp2025@gmail.com" # Your full Gmail address
+    MAIL_PORT: int = 587 # For STARTTLS
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_STARTTLS: bool = True # Use STARTTLS
+    MAIL_SSL_TLS: bool = False # Not strictly necessary if using STARTTLS, but ensure it's False for 587
 
     class Config:
         env_file = ".env"

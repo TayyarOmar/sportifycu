@@ -1,17 +1,27 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import EmailStr
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 
 from ..config import settings # Use .. to go up one level to the backend package root
+
+conf = ConnectionConfig(
+    MAIL_USERNAME=settings.MAIL_USERNAME,
+    MAIL_PASSWORD=settings.MAIL_PASSWORD,
+    MAIL_FROM=settings.MAIL_FROM,
+    MAIL_PORT=settings.MAIL_PORT,
+    MAIL_SERVER=settings.MAIL_SERVER,
+    MAIL_STARTTLS=settings.MAIL_STARTTLS,
+    MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
+)
+
 
 async def send_email_async(
     subject: str, 
     recipient_to: EmailStr, 
     body_html: Optional[str] = None,
     body_text: Optional[str] = None,
-    # environment: Settings = Depends(get_settings) # If using FastAPI DI for settings
 ):
     if not settings.MAIL_USERNAME or not settings.MAIL_PASSWORD or not settings.MAIL_SERVER:
         print(f"MAIL settings not configured. Email not sent. To: {recipient_to}, Subject: {subject}")
@@ -19,52 +29,32 @@ async def send_email_async(
         print(f"Body Text: {body_text}")
         return
 
-    message = MIMEMultipart("alternative")
-    message["From"] = settings.MAIL_FROM
-    message["To"] = recipient_to
-    message["Subject"] = subject
+    message = MessageSchema(
+        subject=subject,
+        recipients=[recipient_to],
+        body=body_html if body_html else body_text,
+        subtype=MessageType.html if body_html else MessageType.plain,
+    )
 
-    if body_text:
-        message.attach(MIMEText(body_text, "plain"))
-    if body_html:
-        message.attach(MIMEText(body_html, "html"))
-
+    fm = FastMail(conf)
     try:
-        # Using asyncio.to_thread for smtplib if in an async context, or run smtplib directly
-        # For simplicity here, direct smtplib call (consider threading for non-blocking in async app)
-        # NOTE FOR PRODUCTION: smtplib is a blocking library. In an async application like FastAPI,
-        # blocking I/O operations should be run in a separate thread pool to avoid stalling the event loop.
-        # Consider using `await asyncio.to_thread(server.sendmail, ...)` for Python 3.9+
-        # or an async-native email library like `aiosmtplib` or `fastapi-mail`.
-        if settings.MAIL_SSL_TLS:
-            context = smtplib.ssl.create_default_context()
-            server = smtplib.SMTP_SSL(settings.MAIL_SERVER, settings.MAIL_PORT, context=context)
-        else:
-            server = smtplib.SMTP(settings.MAIL_SERVER, settings.MAIL_PORT)
-        
-        if settings.MAIL_STARTTLS:
-            server.starttls()
-        
-        server.login(settings.MAIL_USERNAME, settings.MAIL_PASSWORD)
-        server.sendmail(settings.MAIL_FROM, recipient_to, message.as_string())
-        server.quit()
+        await fm.send_message(message)
         print(f"Email sent to {recipient_to} with subject: {subject}")
     except Exception as e:
         print(f"Failed to send email to {recipient_to}: {e}")
 
-# Example email templates (can be more sophisticated using Jinja2)
 async def send_2fa_login_email(email_to: EmailStr, token: str):
     project_name = "Sportify App"
     subject = f"[{project_name}] Your 2FA Login Link"
     # Frontend URL should be configurable
     link = f"http://localhost:3000/verify-2fa?token={token}" # Example frontend URL
     
-    body_html = f"""\
+    body_html = f"""
     <html>
         <body>
             <p>Hello,</p>
             <p>Please click the link below to complete your login for {project_name}:</p>
-            <p><a href="{link}">Complete Login</a></p>
+            <p><a href=\"{link}\">Complete Login</a></p>
             <p>This link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.</p>
             <p>If you did not request this, please ignore this email.</p>
         </body>
@@ -72,20 +62,20 @@ async def send_2fa_login_email(email_to: EmailStr, token: str):
     """
     body_text = f"Hello,\nPlease use the following link to complete your login for {project_name}: {link}\nThis link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.\nIf you did not request this, please ignore this email."
 
-    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html, body_text=body_text)
+    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html)
 
 async def send_password_reset_email(email_to: EmailStr, token: str):
     project_name = "Sportify App"
     subject = f"[{project_name}] Your Password Reset Link"
     link = f"http://localhost:3000/reset-password-confirm?token={token}" # Example frontend URL
     
-    body_html = f"""\
+    body_html = f"""
     <html>
         <body>
             <p>Hello,</p>
             <p>You requested a password reset for your account with {project_name}.</p>
             <p>Please click the link below to set a new password:</p>
-            <p><a href="{link}">Reset Password</a></p>
+            <p><a href=\"{link}\">Reset Password</a></p>
             <p>This link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.</p>
             <p>If you did not request a password reset, please ignore this email.</p>
         </body>
@@ -93,7 +83,7 @@ async def send_password_reset_email(email_to: EmailStr, token: str):
     """
     body_text = f"Hello,\nYou requested a password reset for {project_name}. Use this link: {link}\nThis link will expire in {settings.ACCESS_TOKEN_EXPIRE_MINUTES} minutes.\nIf you didn't request this, ignore this email."
 
-    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html, body_text=body_text)
+    await send_email_async(subject=subject, recipient_to=email_to, body_html=body_html)
 
 # Note: The current smtplib implementation is blocking. 
 # In a FastAPI async context, it's better to run blocking IO in a thread pool:
