@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     DATABASE_URL: str = "sportify_db.json"
-    GOOGLE_API_KEY: str = "your_google_maps_api_key"
+    GOOGLE_API_KEY: str = "AIzaSyBASO2s-lFnYBJ454BI2LHfqgJ-pyWo7KU"
 
     # Email settings for Gmail
     MAIL_USERNAME: str = "sportifyapp2025@gmail.com" # Your full Gmail address
