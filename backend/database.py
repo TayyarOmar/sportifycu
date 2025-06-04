@@ -1,12 +1,21 @@
 from tinydb import TinyDB
+from tinydb.storages import JSONStorage
+from datetime import datetime, date
+import json
 from .config import settings
 
-# Using CachingMiddleware for performance
-# storage = CachingMiddleware(JSONStorage)
-# db = TinyDB(settings.DATABASE_URL, storage=storage)
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return super().default(obj)
 
-# Simpler setup without CachingMiddleware for now, can be added if performance becomes an issue.
-db = TinyDB(settings.DATABASE_URL)
+class CustomJSONStorage(JSONStorage):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.kwargs['cls'] = DateTimeEncoder
+
+db = TinyDB(settings.DATABASE_URL, storage=CustomJSONStorage)
 
 # Define tables (collections)
 UserTable = db.table('users')

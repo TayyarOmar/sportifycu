@@ -4,6 +4,7 @@ from .database import UserTable, GymTable, GroupActivityTeamTable
 from .models import User, Gym, GroupActivityTeam, ActivityLog
 from .schemas import UserCreate # For type hinting where appropriate
 from .auth import get_password_hash # For user creation
+from datetime import datetime, date
 import uuid
 
 # ===== User CRUD Operations =====
@@ -32,12 +33,22 @@ def create_user_db(user_data: UserCreate) -> User:
 def get_user_by_email(email: str) -> Optional[User]:
     user_doc = UserTable.get(Query().email == email)
     if user_doc:
+        # Convert ISO date strings back to date objects for tracked_activities
+        if 'tracked_activities' in user_doc:
+            for activity in user_doc['tracked_activities']:
+                if isinstance(activity.get('date'), str):
+                    activity['date'] = date.fromisoformat(activity['date'])
         return User(**user_doc)
     return None
 
 def get_user_by_id(user_id: str) -> Optional[User]:
     user_doc = UserTable.get(Query().user_id == user_id)
     if user_doc:
+        # Convert ISO date strings back to date objects for tracked_activities
+        if 'tracked_activities' in user_doc:
+            for activity in user_doc['tracked_activities']:
+                if isinstance(activity.get('date'), str):
+                    activity['date'] = date.fromisoformat(activity['date'])
         return User(**user_doc)
     return None
 
@@ -48,8 +59,8 @@ def update_user_db(user_id: str, user_update_data: Dict[str, Any]) -> Optional[U
         # If nothing to update after cleaning, fetch and return current user
         return get_user_by_id(user_id)
         
-    updated_count = UserTable.update(update_data_cleaned, Query().user_id == user_id)
-    if updated_count > 0:
+    updated_ids = UserTable.update(update_data_cleaned, Query().user_id == user_id)
+    if len(updated_ids) > 0:
         return get_user_by_id(user_id)
     return None
 
@@ -84,8 +95,8 @@ def update_gym_db(gym_id: str, gym_update_data: Dict[str, Any]) -> Optional[Gym]
     if not update_data_cleaned:
         return get_gym_by_id(gym_id)
 
-    updated_count = GymTable.update(update_data_cleaned, Query().gym_id == gym_id)
-    if updated_count > 0:
+    updated_ids = GymTable.update(update_data_cleaned, Query().gym_id == gym_id)
+    if len(updated_ids) > 0:
         return get_gym_by_id(gym_id)
     return None
 
@@ -98,23 +109,38 @@ def create_group_activity_team_db(team_data: GroupActivityTeam) -> GroupActivity
 def get_group_activity_team_by_id(team_id: str) -> Optional[GroupActivityTeam]:
     team_doc = GroupActivityTeamTable.get(Query().team_id == team_id)
     if team_doc:
+        # Convert ISO datetime string back to datetime object
+        if isinstance(team_doc.get('date_and_time'), str):
+            team_doc['date_and_time'] = datetime.fromisoformat(team_doc['date_and_time'])
         return GroupActivityTeam(**team_doc)
     return None
 
 def get_active_group_activity_teams_db() -> List[GroupActivityTeam]:
     # Assuming 'active' is a status. This could be more complex (e.g., date checks)
-    return [GroupActivityTeam(**team_doc) for team_doc in GroupActivityTeamTable.search(Query().status == 'active')]
+    teams = []
+    for team_doc in GroupActivityTeamTable.search(Query().status == 'active'):
+        # Convert ISO datetime string back to datetime object
+        if isinstance(team_doc.get('date_and_time'), str):
+            team_doc['date_and_time'] = datetime.fromisoformat(team_doc['date_and_time'])
+        teams.append(GroupActivityTeam(**team_doc))
+    return teams
 
 def get_all_group_activity_teams_db() -> List[GroupActivityTeam]:
-    return [GroupActivityTeam(**team_doc) for team_doc in GroupActivityTeamTable.all()]
+    teams = []
+    for team_doc in GroupActivityTeamTable.all():
+        # Convert ISO datetime string back to datetime object
+        if isinstance(team_doc.get('date_and_time'), str):
+            team_doc['date_and_time'] = datetime.fromisoformat(team_doc['date_and_time'])
+        teams.append(GroupActivityTeam(**team_doc))
+    return teams
 
 def update_group_activity_team_db(team_id: str, team_update_data: Dict[str, Any]) -> Optional[GroupActivityTeam]:
     update_data_cleaned = {k: v for k, v in team_update_data.items() if v is not None}
     if not update_data_cleaned:
         return get_group_activity_team_by_id(team_id)
 
-    updated_count = GroupActivityTeamTable.update(update_data_cleaned, Query().team_id == team_id)
-    if updated_count > 0:
+    updated_ids = GroupActivityTeamTable.update(update_data_cleaned, Query().team_id == team_id)
+    if len(updated_ids) > 0:
         return get_group_activity_team_by_id(team_id)
     return None
 

@@ -9,8 +9,7 @@ from ..dependencies import get_current_active_user
 
 router = APIRouter(
     prefix="/api/v1/activity-teams",
-    tags=["Group Activity Teams"],
-    dependencies=[Depends(get_current_active_user)] # Most routes here require auth
+    tags=["Group Activity Teams"]
 )
 
 # Define the upload directory path
