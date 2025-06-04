@@ -1,12 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
-from datetime import datetime, date, timezone, timedelta
+from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, AsyncMock
 
 from backend.main import app
 from backend.database import UserTable, GymTable, GroupActivityTeamTable
-from backend.models import Gym, GroupActivityTeam, User, ActivityLog
-from backend import crud, auth, schemas
+from backend.models import Gym, GroupActivityTeam
+from backend import crud, auth
 
 client = TestClient(app)
 
