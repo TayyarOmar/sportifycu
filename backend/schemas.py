@@ -130,6 +130,24 @@ class ActivityTrackingResponse(BaseModel):
     # Or it could be a direct reflection of user.tracked_activities:
     # detailed_logs: List[ActivityLog] = []
 
+class RunningLogRequest(BaseModel):
+    date: date
+    value: float # km
+
+class StepsLogRequest(BaseModel):
+    date: date
+    value: int # steps
+
+class GymTimeLogRequest(BaseModel):
+    date: date
+    value: int # minutes
+
+class ActivityLogResponse(BaseModel):
+    date: date
+    activity_type: str
+    value: float
+    unit: str
+
 # ======== Booking Schemas ========
 class BookingCreateResponse(BaseModel):
     user_id: str

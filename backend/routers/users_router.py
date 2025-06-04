@@ -67,6 +67,75 @@ async def add_activity_log_for_user(
     # Return the last added activity log, which is the one just passed
     return activity_log 
 
+@router.post("/me/activity-log/running", response_model=schemas.ActivityLogResponse)
+async def log_running_activity(
+    running_data: schemas.RunningLogRequest,
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Log or update running activity for a specific date."""
+    updated_user = crud.update_daily_activity_log_db(
+        user_id=current_user.user_id,
+        activity_type="running",
+        activity_date=running_data.date,
+        value=running_data.value,
+        unit="km"
+    )
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not log running activity.")
+    
+    return schemas.ActivityLogResponse(
+        date=running_data.date,
+        activity_type="running",
+        value=running_data.value,
+        unit="km"
+    )
+
+@router.post("/me/activity-log/steps", response_model=schemas.ActivityLogResponse)
+async def log_steps_activity(
+    steps_data: schemas.StepsLogRequest,
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Log or update steps activity for a specific date."""
+    updated_user = crud.update_daily_activity_log_db(
+        user_id=current_user.user_id,
+        activity_type="steps",
+        activity_date=steps_data.date,
+        value=float(steps_data.value),
+        unit="steps"
+    )
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not log steps activity.")
+    
+    return schemas.ActivityLogResponse(
+        date=steps_data.date,
+        activity_type="steps",
+        value=float(steps_data.value),
+        unit="steps"
+    )
+
+@router.post("/me/activity-log/gym-time", response_model=schemas.ActivityLogResponse)
+async def log_gym_time_activity(
+    gym_time_data: schemas.GymTimeLogRequest,
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Log or update gym time activity for a specific date."""
+    updated_user = crud.update_daily_activity_log_db(
+        user_id=current_user.user_id,
+        activity_type="gym_time",
+        activity_date=gym_time_data.date,
+        value=float(gym_time_data.value),
+        unit="minutes"
+    )
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not log gym time activity.")
+    
+    return schemas.ActivityLogResponse(
+        date=gym_time_data.date,
+        activity_type="gym_time",
+        value=float(gym_time_data.value),
+        unit="minutes"
+    )
+
 # --- Favourites --- 
 @router.post("/me/favourites/{gym_id}", response_model=schemas.UserResponse)
 async def set_favourite_gym(

@@ -246,6 +246,171 @@ class TestUserEndpoints:
         assert data["activity_type"] == "running"
         assert data["value"] == 5.0
 
+    def test_log_running_activity_new(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        running_data = {
+            "date": "2024-01-15",
+            "value": 10.5
+        }
+        response = client.post("/api/v1/users/me/activity-log/running", json=running_data, headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["activity_type"] == "running"
+        assert data["value"] == 10.5
+        assert data["unit"] == "km"
+        assert data["date"] == "2024-01-15"
+
+    def test_log_running_activity_update_existing(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        # First log
+        running_data = {
+            "date": "2024-01-16",
+            "value": 5.0
+        }
+        response1 = client.post("/api/v1/users/me/activity-log/running", json=running_data, headers=headers)
+        assert response1.status_code == 200
+        
+        # Update same date
+        running_data_updated = {
+            "date": "2024-01-16",
+            "value": 8.0
+        }
+        response2 = client.post("/api/v1/users/me/activity-log/running", json=running_data_updated, headers=headers)
+        assert response2.status_code == 200
+        data = response2.json()
+        assert data["value"] == 8.0
+        
+        # Verify only one entry exists for this date by checking activity tracking
+        tracking_response = client.get("/api/v1/users/me/activity-tracking", headers=headers)
+        tracking_data = tracking_response.json()
+        # Should have 8.0 km, not 13.0 km (5.0 + 8.0)
+        assert tracking_data["running_total_km"] == 8.0
+
+    def test_log_steps_activity_new(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        steps_data = {
+            "date": "2024-01-17",
+            "value": 12000
+        }
+        response = client.post("/api/v1/users/me/activity-log/steps", json=steps_data, headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["activity_type"] == "steps"
+        assert data["value"] == 12000.0
+        assert data["unit"] == "steps"
+        assert data["date"] == "2024-01-17"
+
+    def test_log_steps_activity_update_existing(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        # First log
+        steps_data = {
+            "date": "2024-01-18",
+            "value": 8000
+        }
+        response1 = client.post("/api/v1/users/me/activity-log/steps", json=steps_data, headers=headers)
+        assert response1.status_code == 200
+        
+        # Update same date
+        steps_data_updated = {
+            "date": "2024-01-18",
+            "value": 15000
+        }
+        response2 = client.post("/api/v1/users/me/activity-log/steps", json=steps_data_updated, headers=headers)
+        assert response2.status_code == 200
+        data = response2.json()
+        assert data["value"] == 15000.0
+        
+        # Verify only one entry exists for this date
+        tracking_response = client.get("/api/v1/users/me/activity-tracking", headers=headers)
+        tracking_data = tracking_response.json()
+        assert tracking_data["steps_total"] == 15000
+
+    def test_log_gym_time_activity_new(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        gym_time_data = {
+            "date": "2024-01-19",
+            "value": 90
+        }
+        response = client.post("/api/v1/users/me/activity-log/gym-time", json=gym_time_data, headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["activity_type"] == "gym_time"
+        assert data["value"] == 90.0
+        assert data["unit"] == "minutes"
+        assert data["date"] == "2024-01-19"
+
+    def test_log_gym_time_activity_update_existing(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        # First log
+        gym_time_data = {
+            "date": "2024-01-20",
+            "value": 60
+        }
+        response1 = client.post("/api/v1/users/me/activity-log/gym-time", json=gym_time_data, headers=headers)
+        assert response1.status_code == 200
+        
+        # Update same date
+        gym_time_data_updated = {
+            "date": "2024-01-20",
+            "value": 120
+        }
+        response2 = client.post("/api/v1/users/me/activity-log/gym-time", json=gym_time_data_updated, headers=headers)
+        assert response2.status_code == 200
+        data = response2.json()
+        assert data["value"] == 120.0
+        
+        # Verify only one entry exists for this date
+        tracking_response = client.get("/api/v1/users/me/activity-tracking", headers=headers)
+        tracking_data = tracking_response.json()
+        assert tracking_data["gym_time_total_minutes"] == 120
+
+    def test_log_multiple_activities_same_date(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        test_date = "2024-01-21"
+        
+        # Log all three activities for the same date
+        running_data = {"date": test_date, "value": 5.0}
+        steps_data = {"date": test_date, "value": 10000}
+        gym_time_data = {"date": test_date, "value": 75}
+        
+        # Log running
+        response1 = client.post("/api/v1/users/me/activity-log/running", json=running_data, headers=headers)
+        assert response1.status_code == 200
+        
+        # Log steps
+        response2 = client.post("/api/v1/users/me/activity-log/steps", json=steps_data, headers=headers)
+        assert response2.status_code == 200
+        
+        # Log gym time
+        response3 = client.post("/api/v1/users/me/activity-log/gym-time", json=gym_time_data, headers=headers)
+        assert response3.status_code == 200
+        
+        # Verify all activities are tracked
+        tracking_response = client.get("/api/v1/users/me/activity-tracking", headers=headers)
+        tracking_data = tracking_response.json()
+        assert tracking_data["running_total_km"] >= 5.0
+        assert tracking_data["steps_total"] >= 10000
+        assert tracking_data["gym_time_total_minutes"] >= 75
+
+    def test_activity_log_invalid_date_format(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        invalid_data = {
+            "date": "invalid-date",
+            "value": 5.0
+        }
+        response = client.post("/api/v1/users/me/activity-log/running", json=invalid_data, headers=headers)
+        assert response.status_code == 422
+
+    def test_activity_log_negative_value(self, authenticated_user):
+        headers = {"Authorization": f"Bearer {authenticated_user['token']}"}
+        negative_data = {
+            "date": "2024-01-22",
+            "value": -5.0
+        }
+        # The API should accept negative values (might be corrections), but this tests the behavior
+        response = client.post("/api/v1/users/me/activity-log/running", json=negative_data, headers=headers)
+        assert response.status_code == 200  # Assuming we allow negative values
+
     def test_set_favourite_gym(self, authenticated_user, clean_db):
         # Create a gym first
         gym = Gym(name="Test Gym", location="Test Location")
@@ -497,6 +662,9 @@ class TestAuthenticationRequired:
             ("PUT", "/api/v1/users/me/profile"),
             ("GET", "/api/v1/users/me/activity-tracking"),
             ("POST", "/api/v1/users/me/activity-log"),
+            ("POST", "/api/v1/users/me/activity-log/running"),
+            ("POST", "/api/v1/users/me/activity-log/steps"),
+            ("POST", "/api/v1/users/me/activity-log/gym-time"),
             ("POST", "/api/v1/users/me/favourites/test_gym_id"),
             ("PUT", "/api/v1/users/me/notification-settings"),
             ("GET", "/api/v1/users/me/bookings"),
