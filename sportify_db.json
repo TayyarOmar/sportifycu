@@ -1,1 +1,1 @@
-{"users": {}, "gyms": {}, "group_activity_teams": {}}
+{"users": {"1": {"user_id": "3dde3bdb-cbc9-4bda-8863-3b6f0c53de59", "name": "Mrnaqa Tester", "email": "mrnaqa@gmail.com", "hashed_password": "$2b$12$..eNj2Jze2fWSNdIJpTBj.f5VLi9Y.NAIaNnZdKXFmZUTXMwzfDoa", "gender": "male", "age": 30, "fitness_goals": [], "two_fa_key": "RUJU7UQAOKZ2IKKPFERQIZYO4WMFQ27P", "is_2fa_enabled": true, "tracked_activities": [], "favourites": [], "achievements": [], "notification_setting": true, "bookings": []}}, "gyms": {}, "group_activity_teams": {}}
