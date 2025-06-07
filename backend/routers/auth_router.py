@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Body
-from pydantic import EmailStr, BaseModel # BaseModel for local schemas
+from pydantic import EmailStr # BaseModel removed as SignupResponse moved to schemas.UserResponse
 from typing import Optional
 from datetime import timedelta 
 
@@ -12,23 +12,31 @@ router = APIRouter(
     tags=["Authentication"],
 )
 
-# --- Local Schemas Specific to this Router ---
-# PasswordResetConfirmPayload is replaced by PasswordResetConfirmWithCodeRequest from schemas.py
-# class PasswordResetConfirmPayload(BaseModel):
-#     new_password: str
-
-class SignupResponse(BaseModel):
-    user_id: str
-    email: EmailStr
-    name: str
-    message: str
-    otp_provisioning_uri: Optional[str] = None
-
+# SignupResponse is now schemas.UserResponse, no local SignupResponse needed
 
 # --- Endpoints ---
 
-@router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(user_data: schemas.UserCreate):
+    """
+    Handles new user registration.
+
+    This endpoint receives user creation data, validates if the email is already in use,
+    and then creates a new user in the database. A 2FA secret key is automatically
+    generated for the user but is disabled by default.
+
+    Args:
+        user_data: A `UserCreate` schema containing the new user's details like
+                   username, email, and password.
+
+    Raises:
+        HTTPException(400): If the email provided is already registered.
+        HTTPException(500): If the user account creation fails in the database.
+
+    Returns:
+        A `UserResponse` schema of the newly created user, including their ID,
+        username, email, and other non-sensitive information.
+    """
     db_user = crud.get_user_by_email(email=user_data.email)
     if db_user:
         raise HTTPException(
@@ -43,35 +51,36 @@ async def signup(user_data: schemas.UserCreate):
             detail="Could not create user account.",
         )
 
-    two_fa_key = auth.generate_2fa_secret_key()
-    user_update_data = {"two_fa_key": two_fa_key, "is_2fa_enabled": True} # Enable app-based 2FA by default
-    
-    updated_user = crud.update_user_db(user_id=created_user.user_id, user_update_data=user_update_data)
-    if not updated_user or not updated_user.two_fa_key:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not set up 2FA for the user."
-        )
+    # 2FA key is generated and set to is_2fa_enabled=False in crud.create_user_db
+    # The created_user object (type User from models.py) will have these fields.
+    # No need to update again or generate provisioning URI here.
+    # Frontend can use created_user.two_fa_key to offer authenticator app setup if desired.
 
-    provisioning_uri = auth.get_2fa_provisioning_uri(
-        email=updated_user.email, 
-        secret_key=updated_user.two_fa_key,
-        issuer_name="SportifyApp"
-    )
+    return created_user # Return the full UserResponse (Pydantic will convert User model to UserResponse)
 
-    return SignupResponse(
-        user_id=updated_user.user_id,
-        email=updated_user.email,
-        name=updated_user.name,
-        message="User created. Scan QR for TOTP 2FA. Email code login also available.", # Updated message
-        otp_provisioning_uri=provisioning_uri
-    )
-
-@router.post("/login", response_model=schemas.MessageResponse) # Changed response model
+@router.post("/login", response_model=schemas.MessageResponse)
 async def login_for_2fa_email_code(
     form_data: schemas.TwoFALoginRequest, 
     background_tasks: BackgroundTasks
 ):
+    """
+    Initiates the login process by verifying credentials and sending a 2FA code via email.
+
+    This first step of login validates the user's email and password. If they are correct,
+    it generates a temporary 6-digit code, stores it, and sends it to the user's
+    registered email address as a background task. This endpoint does not return a JWT token.
+
+    Args:
+        form_data: A request body containing the user's email and password.
+        background_tasks: FastAPI's background task runner to send the email without
+                          blocking the response.
+
+    Raises:
+        HTTPException(401): If the provided email or password is incorrect.
+
+    Returns:
+        A `MessageResponse` indicating that a 2FA code has been sent to the user's email.
+    """
     user = crud.get_user_by_email(email=form_data.email)
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -95,6 +104,23 @@ async def login_for_2fa_email_code(
 
 @router.post("/verify-2fa-code", response_model=schemas.Token) # Renamed endpoint, accepts code in body
 async def verify_2fa_login_code(payload: schemas.VerifyCodeRequest = Body(...)):
+    """
+    Verifies the 2FA code and issues a JWT access token upon successful validation.
+
+    This second step of login takes the 6-digit code sent to the user's email.
+    It validates the code against the stored value. If valid, it generates a
+    JWT access token for the user, completing the login process.
+
+    Args:
+        payload: A request body containing the user's email and the 6-digit code.
+
+    Raises:
+        HTTPException(400): If the provided 2FA code is invalid or has expired.
+        HTTPException(404): If the user cannot be found after code verification.
+
+    Returns:
+        A `Token` schema containing the JWT `access_token` and `token_type`.
+    """
     is_valid_code = auth.verify_stored_code(email=payload.email, code=payload.code, expected_type="2fa_login_code")
     if not is_valid_code:
         raise HTTPException(
@@ -162,7 +188,8 @@ async def confirm_password_reset_with_code(
         )
 
     hashed_password = auth.get_password_hash(payload.new_password)
-    updated_user = crud.update_user_db(user_id=user.user_id, user_update_data={"hashed_password": hashed_password})
+    # Use the more specific crud.update_password_db
+    updated_user = crud.update_password_db(user_id=user.user_id, new_hashed_password=hashed_password)
     
     if not updated_user:
         raise HTTPException(

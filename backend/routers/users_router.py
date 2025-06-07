@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from pydantic import BaseModel # Added for NotificationSettingsPayload
 
-from .. import crud, schemas, models # auth might be needed for password change if part of profile
+from .. import crud, schemas, models
 from ..dependencies import get_current_active_user
-from ..utils import calculate_activity_score # For activity tracking response
+from ..utils import calculate_activity_score
 
 router = APIRouter(
     prefix="/api/v1/users",
     tags=["Users"],
-    dependencies=[Depends(get_current_active_user)] # Protect all routes in this router
+    dependencies=[Depends(get_current_active_user)]
 )
 
 # --- User Profile Endpoints ---
@@ -51,21 +50,6 @@ async def get_activity_tracking(current_user: models.User = Depends(get_current_
         calculated_score=calculated_score
         # detailed_logs=current_user.tracked_activities # Optionally include raw logs
     )
-
-@router.post("/me/activity-log", response_model=models.ActivityLog)
-async def add_activity_log_for_user(
-    activity_log: models.ActivityLog, # Use the model directly as it defines structure
-    current_user: models.User = Depends(get_current_active_user)
-):
-    """Add a new activity log for the current user."""
-    # Ensure date is set if not provided, or use today. Pydantic model requires it.
-    # activity_log.date is already required by the model.
-
-    updated_user = crud.add_activity_log_db(user_id=current_user.user_id, activity_log=activity_log)
-    if not updated_user:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not add activity log.")
-    # Return the last added activity log, which is the one just passed
-    return activity_log 
 
 @router.post("/me/activity-log/running", response_model=schemas.ActivityLogResponse)
 async def log_running_activity(
@@ -148,13 +132,10 @@ async def set_favourite_gym(
     if not gym:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Gym with id {gym_id} not found.")
 
-    if gym_id not in current_user.favourites:
-        current_user.favourites.append(gym_id)
-        updated_user = crud.update_user_db(user_id=current_user.user_id, user_update_data={"favourites": current_user.favourites})
-        if not updated_user:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not update favourites.")
-        return updated_user
-    return current_user # Already a favourite
+    updated_user = crud.add_favourite_gym_db(user_id=current_user.user_id, gym_id=gym_id)
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not update favourites.")
+    return updated_user
 
 @router.delete("/me/favourites/{gym_id}", response_model=schemas.UserResponse)
 async def remove_favourite_gym(
@@ -162,26 +143,22 @@ async def remove_favourite_gym(
     current_user: models.User = Depends(get_current_active_user)
 ):
     """Remove a gym from the current user's favourites list."""
-    if gym_id in current_user.favourites:
-        current_user.favourites.remove(gym_id)
-        updated_user = crud.update_user_db(user_id=current_user.user_id, user_update_data={"favourites": current_user.favourites})
-        if not updated_user:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not update favourites.")
-        return updated_user
-    # If gym_id not in favourites, no action needed or raise 404
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Gym with id {gym_id} not in favourites.")
+    if gym_id not in current_user.favourites:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Gym with id {gym_id} not in favourites.")
+
+    updated_user = crud.remove_favourite_gym_db(user_id=current_user.user_id, gym_id=gym_id)
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not update favourites.")
+    return updated_user
 
 # --- Notification Settings --- 
-class NotificationSettingsPayload(BaseModel):
-    enabled: bool
-
 @router.put("/me/notification-settings", response_model=schemas.UserResponse)
 async def set_notification_settings(
-    payload: NotificationSettingsPayload,
+    payload: schemas.SetNotificationRequest,
     current_user: models.User = Depends(get_current_active_user)
 ):
     """Set the notification preference for the current user."""
-    updated_user = crud.update_user_db(user_id=current_user.user_id, user_update_data={"notification_setting": payload.enabled})
+    updated_user = crud.update_notification_setting_db(user_id=current_user.user_id, enabled=payload.enabled)
     if not updated_user:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not update notification settings.")
     return updated_user

@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     password: str
     gender: Optional[str] = None
     age: Optional[int] = None
+    fitness_goals: Optional[List[str]] = None
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -41,6 +42,14 @@ class UserProfileEdit(BaseModel):
     gender: Optional[str] = None
     age: Optional[int] = None
     fitness_goals: Optional[List[str]] = None
+
+# Schema for setting favorite gym
+class SetFavoriteRequest(BaseModel):
+    gym_id: str
+
+# Schema for setting notification preferences
+class SetNotificationRequest(BaseModel):
+    enabled: bool
 
 # ======== Token Schemas ========
 class Token(BaseModel):
@@ -94,6 +103,7 @@ class GymNearbyResponse(GymResponse):
 class GroupActivityTeamCreate(BaseModel):
     name: str
     description: str
+    sport_type: str # e.g., 'football', 'basketball', 'tennis'
     category: str
     location: str
     date_and_time: datetime
@@ -103,6 +113,9 @@ class GroupActivityTeamCreate(BaseModel):
     # photo: str # Will be handled as UploadFile in endpoint, then converted to URL or stored
     # lister_id will be taken from current authenticated user
     # status will be set to 'active' by default
+    status: Optional[str] = None # e.g., "active", "filled", "cancelled"
+    sport_type: Optional[str] = None
+    # photo_url: Optional[HttpUrl] = None
 
 class GroupActivityTeamUpdate(BaseModel):
     name: Optional[str] = None
@@ -114,6 +127,7 @@ class GroupActivityTeamUpdate(BaseModel):
     contact_information: Optional[str] = None
     players_needed: Optional[int] = None
     status: Optional[str] = None # e.g., "active", "filled", "cancelled"
+    sport_type: Optional[str] = None
     # photo_url: Optional[HttpUrl] = None
 
 class GroupActivityTeamResponse(GroupActivityTeamCreate):
@@ -138,6 +152,12 @@ class ActivityTrackingResponse(BaseModel):
     calculated_score: float = 0.0 # Logic for this score needs to be defined
     # Or it could be a direct reflection of user.tracked_activities:
     # detailed_logs: List[ActivityLog] = []
+
+class LogActivityRequest(BaseModel): # New schema for logging activities
+    activity_type: str # e.g., "running", "steps", "gym_time"
+    value: float
+    unit: str # e.g., "km", "steps", "minutes"
+    date: Optional[date] = None # Defaults to today if None
 
 class RunningLogRequest(BaseModel):
     date: date
@@ -176,6 +196,41 @@ class AchievementResponse(BaseModel):
     description: Optional[str] = None
     achieved_on: Optional[date] = None
 
+# ======== Leaderboard Schemas ========
+class LeaderboardEntry(BaseModel):
+    user_id: str
+    name: str # User's name
+    score: float
+
+class LeaderboardResponse(BaseModel):
+    top_users: List[LeaderboardEntry]
+
 # ======== General Schemas ========
 class MessageResponse(BaseModel):
-    message: str 
+    message: str
+
+# --- Team Schemas ---
+
+class TeamBase(BaseModel):
+    name: str
+    sport: str
+    description: str
+    location: str
+    date_time: str
+    age_range: str
+    contact_info: str
+    players_needed: str
+    image_url: Optional[str] = None
+
+class TeamCreate(TeamBase):
+    pass
+
+class TeamUpdate(TeamBase):
+    pass
+
+class Team(TeamBase):
+    id: int
+    owner_id: int
+
+    class Config:
+        from_attributes = True 

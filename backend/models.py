@@ -2,6 +2,10 @@ from pydantic import BaseModel, EmailStr, HttpUrl, Field
 from typing import List, Optional
 from datetime import datetime, date
 import uuid
+from sqlalchemy import Boolean, Column, Integer, String, Enum as SQLAlchemyEnum, ForeignKey
+from sqlalchemy.orm import relationship
+from .database import Base
+import enum
 
 # Helper function for generating default UUIDs
 def default_uuid():
@@ -19,23 +23,38 @@ class Subscription(BaseModel):
     length: str  # e.g., "1 month", "1 year"
     price: float
 
-class User(BaseModel):
-    user_id: str = Field(default_factory=default_uuid)
-    name: str
-    email: EmailStr
-    hashed_password: str # Store hashed passwords, not plain text
-    gender: Optional[str] = None
-    age: Optional[int] = None
-    fitness_goals: Optional[List[str]] = Field(default_factory=list)
-    two_fa_key: Optional[str] = None # Secret key for TOTP
-    is_2fa_enabled: bool = False
-    tracked_activities: List[ActivityLog] = Field(default_factory=list)
-    favourites: List[str] = Field(default_factory=list)  # List of gym_ids
-    achievements: List[str] = Field(default_factory=list) # List of achievement names or IDs
-    notification_setting: bool = True
-    bookings: List[str] = Field(default_factory=list)  # List of team_ids user is booked into
-    # email_verified: bool = False # Could be useful for 2FA/reset flows
-    # last_login: Optional[datetime] = None
+class UserRole(enum.Enum):
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
+
+class User(Base):
+    __tablename__ = "users"
+
+    user_id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+    role = Column(SQLAlchemyEnum(UserRole), default=UserRole.USER)
+    
+    is_2fa_enabled = Column(Boolean, default=False)
+    two_fa_key = Column(String, nullable=True) # Holds the secret key for TOTP
+    
+    # User's profile information
+    full_name = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    date_of_birth = Column(String, nullable=True)
+    phone_number = Column(String, nullable=True)
+    profile_picture_url = Column(String, nullable=True)
+    
+    # Personalization
+    fitness_goal = Column(String, nullable=True)
+    
+    # App-specific settings
+    notification_setting = Column(Boolean, default=True)
+    
+    teams = relationship("Team", back_populates="owner")
 
 class Gym(BaseModel):
     gym_id: str = Field(default_factory=default_uuid)
@@ -64,6 +83,31 @@ class GroupActivityTeam(BaseModel):
     status: str = "active"  # e.g., "active", "filled", "cancelled"
     photo_base64: Optional[str] = None # Base64 encoded photo data
     # photo_url: Optional[HttpUrl] = None # URL to the photo, if uploaded to a service
+
+class Team(Base):
+    __tablename__ = "teams"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    sport = Column(String)
+    description = Column(String)
+    location = Column(String)
+    date_time = Column(String)
+    age_range = Column(String)
+    contact_info = Column(String)
+    players_needed = Column(String)
+    image_url = Column(String, nullable=True)
+    
+    owner_id = Column(Integer, ForeignKey("users.user_id"))
+    owner = relationship("User", back_populates="teams")
+
+class FavoriteFacility(Base):
+    __tablename__ = "favorite_facilities"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    gym_id = Column(String)
+
+    user = relationship("User")
 
 # For TinyDB, we might not need explicit "Table" models if we use Pydantic for validation
 # and structure within the list of documents each table holds. 

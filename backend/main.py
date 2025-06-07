@@ -3,7 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles # Import StaticFiles
 import os # For path joining
 
-from .routers import auth_router, users_router, gyms_router, activity_teams_router, leaderboard_router
+from .routers import (
+    auth_router,
+    users_router,
+    gyms_router,
+    activity_teams_router,
+    leaderboard_router,
+    teams_router,
+)
+from . import models
+from .database import engine
 
 # Potentially, define app metadata
 app_metadata = {
@@ -17,12 +26,15 @@ app = FastAPI(**app_metadata)
 
 # CORS (Cross-Origin Resource Sharing) Middleware
 # Allow all origins for development. For production, restrict this to your frontend domain(s).
+# The original list was too restrictive for Flutter's random dev port.
+# Using ["*"] is the most robust solution for local development.
 origins = [
-    "http://localhost",          # Common local development origin
-    "http://localhost:3000",     # React default dev port
-    "http://localhost:8080",     # Vue default dev port
-    "http://localhost:4200",     # Angular default dev port
-    # Add your Flutter app's web origin if applicable, or mobile specific considerations might apply
+    "*"
+    # "http://localhost",          # Common local development origin
+    # "http://localhost:3000",     # React default dev port
+    # "http://localhost:8080",     # Vue default dev port
+    # "http://localhost:4200",     # Angular default dev port
+    # # Add your Flutter app's web origin if applicable, or mobile specific considerations might apply
 ]
 
 app.add_middleware(
@@ -58,6 +70,11 @@ app.include_router(users_router.router)
 app.include_router(gyms_router.router)
 app.include_router(activity_teams_router.router)
 app.include_router(leaderboard_router.router)
+app.include_router(teams_router.router)
+
+# This line creates the database tables if they don't exist
+# It will now create the 'teams' table as well
+models.Base.metadata.create_all(bind=engine)
 
 @app.get("/", tags=["Root"])
 async def read_root():

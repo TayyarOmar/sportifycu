@@ -9,39 +9,30 @@ router = APIRouter(
     # dependencies=[Depends(get_current_active_user)] # Leaderboards are often public
 )
 
-# Define a response schema for leaderboard entries if not already in global schemas
-# schemas.py does not have a direct leaderboard user schema, 
-# crud.get_top_users_by_score returns List[Dict[str, Any]] with user_id, name, email, score
-class LeaderboardUser(schemas.BaseModel): # Use schemas.BaseModel if available or pydantic.BaseModel
-    user_id: str
-    name: str
-    email: schemas.EmailStr # Assuming EmailStr is available via schemas
-    score: float
+# LeaderboardUser model is removed, using schemas.LeaderboardEntry and schemas.LeaderboardResponse instead
 
-    class Config:
-        from_attributes = True # If data comes from ORM-like objects (not directly here)
-
-@router.get("/top-scores", response_model=List[LeaderboardUser])
-async def get_top_users_by_score(
+@router.get("/top-scores", response_model=schemas.LeaderboardResponse) # Updated response_model
+async def get_top_users_by_score_leaderboard(
     limit: int = Query(10, gt=0, le=100, description="Number of top users to retrieve")
     # current_user: models.User = Depends(get_current_active_user) # If access needs auth
 ):
     """Retrieve the top users based on their calculated activity score."""
     
-    # crud.get_top_users_by_score already exists and returns a list of dicts
-    # with keys: "user_id", "name", "email", "score"
     top_users_data = crud.get_top_users_by_score(limit=limit)
     
-    # Convert list of dicts to list of LeaderboardUser Pydantic models for response validation
-    # This ensures the response adheres to the defined schema.
-    leaderboard_entries = []
+    leaderboard_entries: List[schemas.LeaderboardEntry] = []
     for user_data in top_users_data:
         try:
-            leaderboard_entries.append(LeaderboardUser(**user_data))
-        except Exception as e: # Catch Pydantic validation errors if dict structure is unexpected
-            # Log this error, as it indicates a mismatch between CRUD output and schema
+            # Ensure all fields required by LeaderboardEntry are present in user_data
+            # crud.get_top_users_by_score provides user_id, name, score (email is also there but not in LeaderboardEntry)
+            entry = schemas.LeaderboardEntry(
+                user_id=user_data.get("user_id"), 
+                name=user_data.get("name"), 
+                score=user_data.get("score")
+            )
+            leaderboard_entries.append(entry)
+        except Exception as e: 
             print(f"Error parsing leaderboard user data: {user_data}, error: {e}")
-            # Optionally, skip this entry or raise a 500 error
             continue 
             
-    return leaderboard_entries 
+    return schemas.LeaderboardResponse(top_users=leaderboard_entries) 

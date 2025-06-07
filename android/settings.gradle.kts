@@ -23,3 +23,14 @@ plugins {
 }
 
 include(":app")
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android-arm64-release/m2repository")
+        }
+    }
+}

@@ -1,0 +1,6 @@
+[versions]
+flutterCompileSdk = "34"
+
+[libraries]
+
+[plugins] 
