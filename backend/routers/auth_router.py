@@ -39,6 +39,7 @@ async def signup(user_data: schemas.UserCreate):
     """
     db_user = crud.get_user_by_email(email=user_data.email)
     if db_user:
+        print(f"Signup failed: Email already registered for {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
@@ -46,6 +47,7 @@ async def signup(user_data: schemas.UserCreate):
     
     created_user = crud.create_user_db(user_data=user_data)
     if not created_user:
+        print(f"Signup failed: Could not create user account for {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not create user account.",
@@ -83,6 +85,7 @@ async def login_for_2fa_email_code(
     """
     user = crud.get_user_by_email(email=form_data.email)
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        print(f"Login failed: Incorrect email or password for {form_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -92,6 +95,7 @@ async def login_for_2fa_email_code(
     # Generate a 6-digit code for email verification
     verification_code = auth.create_email_verification_code(email=user.email, code_type="2fa_login_code")
     
+    print(f"Login successful for {form_data.email}. 2FA code sent to email.")
     background_tasks.add_task(
         email_service.send_2fa_login_email, 
         email_to=user.email, 
@@ -123,11 +127,13 @@ async def verify_2fa_login_code(payload: schemas.VerifyCodeRequest = Body(...)):
     """
     is_valid_code = auth.verify_stored_code(email=payload.email, code=payload.code, expected_type="2fa_login_code")
     if not is_valid_code:
+        print(f"2FA code verification failed for {payload.email}.")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired 2FA login code.",
         )
     
+    print(f"2FA code successfully verified for {payload.email}.")
     user = crud.get_user_by_email(email=payload.email)
     if not user:
         raise HTTPException(
