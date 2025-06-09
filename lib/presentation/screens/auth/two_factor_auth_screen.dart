@@ -153,7 +153,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                       },
                 child: authProvider.isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Sign Up'), // As per the image
+                    : const Text('Submit'), // As per the image
               ),
             ],
           ),

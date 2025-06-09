@@ -58,29 +58,32 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildTopThree(List<LeaderboardEntry> topThree) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (topThree.length > 1)
-          _TopPlayerWidget(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (topThree.length > 1)
+            _TopPlayerWidget(
               entry: topThree[1],
               rank: 2,
               color: const Color(0xFFC0C0C0),
-              height: 120),
-        if (topThree.isNotEmpty)
-          _TopPlayerWidget(
+            ),
+          if (topThree.isNotEmpty)
+            _TopPlayerWidget(
               entry: topThree[0],
               rank: 1,
               color: const Color(0xFFFFD700),
-              height: 150),
-        if (topThree.length > 2)
-          _TopPlayerWidget(
+            ),
+          if (topThree.length > 2)
+            _TopPlayerWidget(
               entry: topThree[2],
               rank: 3,
               color: const Color(0xFFCD7F32),
-              height: 100),
-      ],
+            ),
+        ],
+      ),
     );
   }
 
@@ -101,17 +104,21 @@ class _TopPlayerWidget extends StatelessWidget {
   final LeaderboardEntry entry;
   final int rank;
   final Color color;
-  final double height;
+  final double? height;
 
   const _TopPlayerWidget(
       {required this.entry,
       required this.rank,
       required this.color,
-      required this.height});
+      this.height});
 
   @override
   Widget build(BuildContext context) {
-    final double barHeight = rank == 1 ? 60 : 40;
+    final double barHeight = rank == 1
+        ? 80
+        : rank == 2
+            ? 60
+            : 40;
     final Color barColor = rank == 1
         ? const Color(0xFFFFD700) // Gold
         : rank == 2
