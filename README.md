@@ -196,17 +196,3 @@ The backend provides a RESTful API with the following main routers:
 -   `/api/v1/leaderboards`: Access to the user leaderboard.
 
 For detailed information on each endpoint, refer to the FastAPI auto-generated documentation available at `http://127.0.0.1:8000/docs` when the backend server is running.
-
-## Contributing
-
-Contributions are welcome! If you have suggestions for improving the app, please feel free to open an issue or submit a pull request.
-
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/YourFeature`).
-3.  Commit your changes (`git commit -m 'Add some feature'`).
-4.  Push to the branch (`git push origin feature/YourFeature`).
-5.  Open a Pull Request.
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for more details. (Note: A `LICENSE` file should be added if one is intended). 
