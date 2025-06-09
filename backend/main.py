@@ -18,16 +18,17 @@ app = FastAPI(**app_metadata)
 # CORS (Cross-Origin Resource Sharing) Middleware
 # Allow all origins for development. For production, restrict this to your frontend domain(s).
 origins = [
-    "http://localhost",          # Common local development origin
-    "http://localhost:3000",     # React default dev port
-    "http://localhost:8080",     # Vue default dev port
-    "http://localhost:4200",     # Angular default dev port
-    # Add your Flutter app's web origin if applicable, or mobile specific considerations might apply
+    # "http://localhost",          # Common local development origin
+    # "http://localhost:3000",     # React default dev port
+    # "http://localhost:8080",     # Vue default dev port
+    # "http://localhost:4200",     # Angular default dev port
+    # # Add your Flutter app's web origin if applicable, or mobile specific considerations might apply
+    "*",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # or ["*"] for allowing all origins (less secure for production)
+    allow_origins=["*"], # or ["*"] for allowing all origins (less secure for production)
     allow_credentials=True,
     allow_methods=["*"], # Allows all methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"], # Allows all headers
