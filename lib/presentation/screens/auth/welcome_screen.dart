@@ -16,10 +16,10 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 2),
-              // TODO: Make sure you have the logo at 'assets/images/logo.png'
+              // TODO: Make sure you have the logo at 'assets/images/LOGO.png'
               Image.asset(
-                'assets/images/logo.png',
-                height: 120,
+                'assets/images/LOGO.png',
+                height: 150,
               ),
               const SizedBox(height: 20),
               Text(

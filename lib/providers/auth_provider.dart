@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportify_app/api/auth_api.dart';
+import 'package:sportify_app/api/user_api.dart';
+import 'package:sportify_app/models/user.dart';
 
 class SignupData {
   String? name;
@@ -13,11 +15,16 @@ class SignupData {
 
 class AuthProvider with ChangeNotifier {
   final AuthApi _authApi = AuthApi();
+  final UserApi _userApi = UserApi();
+
   SignupData _signupData = SignupData();
   bool _isLoading = false;
+  User? _user;
 
   SignupData get signupData => _signupData;
   bool get isLoading => _isLoading;
+  User? get user => _user;
+  bool get isLoggedIn => _user != null;
 
   void updateSignupData({
     String? name,
@@ -86,7 +93,100 @@ class AuthProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('authToken', token);
 
-      // TODO: Implement logic to handle successful login, e.g., navigate to home
+      await fetchCurrentUser();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> fetchCurrentUser() async {
+    try {
+      _user = await _userApi.getMe();
+      notifyListeners();
+    } catch (e) {
+      // Could fail if token is expired, etc.
+      await logout(); // Log out if we can't fetch the user
+      throw Exception('Session expired. Please log in again.');
+    }
+  }
+
+  Future<bool> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('authToken')) {
+      return false;
+    }
+    _setLoading(true);
+    try {
+      await fetchCurrentUser();
+      return isLoggedIn;
+    } catch (e) {
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> addFavorite(String gymId) async {
+    if (_user == null) return;
+    try {
+      _user = await _userApi.addFavoriteGym(gymId);
+      notifyListeners();
+    } catch (e) {
+      // Handle error, maybe show a snackbar
+      print("Error adding favorite: $e");
+    }
+  }
+
+  Future<void> removeFavorite(String gymId) async {
+    if (_user == null) return;
+    try {
+      _user = await _userApi.removeFavoriteGym(gymId);
+      notifyListeners();
+    } catch (e) {
+      // Handle error
+      print("Error removing favorite: $e");
+    }
+  }
+
+  Future<bool> logActivity(String activityType, num value) async {
+    if (_user == null) return false;
+    _setLoading(true);
+    try {
+      final today = DateTime.now().toIso8601String().split('T').first;
+      await _userApi.logActivity(activityType, today, value);
+      // Refresh user data to get updated activity list and score
+      await fetchCurrentUser();
+      return true;
+    } catch (e) {
+      // Handle error, maybe expose it via a property
+      print("Error logging activity: $e");
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? gender,
+    int? age,
+    List<String>? fitnessGoals,
+  }) async {
+    if (_user == null) return false;
+    _setLoading(true);
+    try {
+      final updatedUser = await _userApi.updateProfile(
+        name: name,
+        gender: gender,
+        age: age,
+        fitnessGoals: fitnessGoals,
+      );
+      _user = updatedUser;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print("Error updating profile: $e");
+      return false;
     } finally {
       _setLoading(false);
     }
@@ -95,12 +195,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
-    // TODO: Implement navigation to login screen
+    _user = null;
     notifyListeners();
-  }
-
-  Future<bool> isLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('authToken');
   }
 }

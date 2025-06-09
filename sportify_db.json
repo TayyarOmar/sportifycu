@@ -1,1 +1,97 @@
-{"users": {"1": {"user_id": "3dde3bdb-cbc9-4bda-8863-3b6f0c53de59", "name": "Mrnaqa Tester", "email": "mrnaqa@gmail.com", "hashed_password": "$2b$12$..eNj2Jze2fWSNdIJpTBj.f5VLi9Y.NAIaNnZdKXFmZUTXMwzfDoa", "gender": "male", "age": 30, "fitness_goals": [], "two_fa_key": "RUJU7UQAOKZ2IKKPFERQIZYO4WMFQ27P", "is_2fa_enabled": true, "tracked_activities": [], "favourites": [], "achievements": [], "notification_setting": true, "bookings": []}, "2": {"user_id": "8dc3ffcf-03db-45f4-a181-123ba17435d9", "name": "omar", "email": "omar.a.tayyar@gmail.com", "hashed_password": "$2b$12$oO0HeBNeDHVlDRGq3xOd7ezrtSzvHrqeiv79czvYtg.A9Tz3pTVKO", "gender": "Female", "age": 17, "fitness_goals": [], "two_fa_key": "QG7SQXTJ7Q3EVACW3KUN5ZHBH72WAVSD", "is_2fa_enabled": true, "tracked_activities": [], "favourites": [], "achievements": [], "notification_setting": true, "bookings": []}}, "gyms": {}, "group_activity_teams": {}}
+{
+    "users": {
+        "2": {
+            "user_id": "8dc3ffcf-03db-45f4-a181-123ba17435d9",
+            "name": "omar",
+            "email": "omar.a.tayyar@gmail.com",
+            "hashed_password": "$2b$12$oO0HeBNeDHVlDRGq3xOd7ezrtSzvHrqeiv79czvYtg.A9Tz3pTVKO",
+            "gender": "Female",
+            "age": 17,
+            "fitness_goals": [],
+            "two_fa_key": "QG7SQXTJ7Q3EVACW3KUN5ZHBH72WAVSD",
+            "is_2fa_enabled": true,
+            "tracked_activities": [
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "running",
+                    "value": 10.0,
+                    "unit": "km"
+                },
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "gym_time",
+                    "value": 60.0,
+                    "unit": "minutes"
+                },
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "steps",
+                    "value": 100.0,
+                    "unit": "steps"
+                }
+            ],
+            "favourites": [],
+            "achievements": [],
+            "notification_setting": true,
+            "bookings": []
+        },
+        "3": {
+            "user_id": "3215e74d-3495-429e-a0fe-39a516c3e6d1",
+            "name": "Naqa",
+            "email": "mrnaqa@gmail.com",
+            "hashed_password": "$2b$12$zyyyogaMaxCj..DYH0smrO2ACd5l.K9weI2k7kGtyERvpCqv6etWW",
+            "gender": "Female",
+            "age": 17,
+            "fitness_goals": [],
+            "two_fa_key": "VONP3RVILHZWHYBCLC6V3O3I66DYIVP5",
+            "is_2fa_enabled": true,
+            "tracked_activities": [
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "steps",
+                    "value": 989.0,
+                    "unit": "steps"
+                },
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "gym_time",
+                    "value": 90.0,
+                    "unit": "minutes"
+                },
+                {
+                    "date": "2025-06-09",
+                    "activity_type": "running",
+                    "value": 2.9,
+                    "unit": "km"
+                }
+            ],
+            "favourites": [],
+            "achievements": [],
+            "notification_setting": true,
+            "bookings": [
+                "5b7f5ab4-9713-43c7-8216-73f3418c6a48"
+            ]
+        }
+    },
+    "gyms": {},
+    "group_activity_teams": {
+        "1": {
+            "team_id": "5b7f5ab4-9713-43c7-8216-73f3418c6a48",
+            "lister_id": "8dc3ffcf-03db-45f4-a181-123ba17435d9",
+            "name": "tayyar team",
+            "description": "tayyar team",
+            "category": "Football",
+            "location": "home",
+            "date_and_time": "2025-06-19T17:11:00",
+            "age_range": "16-18",
+            "contact_information": "0790000000",
+            "players_needed": 6,
+            "current_players_count": 1,
+            "players_enrolled": [
+                "3215e74d-3495-429e-a0fe-39a516c3e6d1"
+            ],
+            "status": "active",
+            "photo_base64": null
+        }
+    }
+}

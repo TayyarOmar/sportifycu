@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sportify_app/providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,9 +17,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateToNext() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/welcome');
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final isLoggedIn = await authProvider.tryAutoLogin();
+        if (isLoggedIn) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/welcome');
+        }
       }
     });
   }
@@ -29,8 +37,8 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // TODO: Make sure you have the logo at 'assets/images/logo.png'
-            Image.asset('assets/images/logo.png', width: 150),
+            // TODO: Make sure you have the logo at 'assets/images/LOGO.png'
+            Image.asset('assets/images/LOGO.png', width: 150),
             const SizedBox(height: 20),
             Text(
               'SportiFy',

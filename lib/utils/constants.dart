@@ -1,7 +1,14 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class AppConstants {
-  // TODO: Replace with your actual backend URL.
-  // For Android Emulator, '10.0.2.2' points to the host machine's localhost.
-  // For iOS Simulator, you can use 'localhost' or '127.0.0.1'.
-  // For a physical device, this needs to be the network IP of the machine running the backend.
-  static const String baseUrl = 'http://localhost:8000';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8000';
+    } else if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000';
+    }
+    // TODO: Add support for other platforms if needed (e.g. iOS)
+    return 'http://localhost:8000';
+  }
 }

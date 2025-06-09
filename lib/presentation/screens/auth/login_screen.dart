@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sportify_app/providers/auth_provider.dart';
 import 'package:sportify_app/presentation/screens/auth/two_factor_auth_screen.dart';
+import 'package:sportify_app/presentation/screens/auth/signup_screen.dart';
+import 'package:sportify_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:sportify_app/utils/app_colors.dart';
+import 'package:sportify_app/presentation/widgets/auth_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -137,12 +140,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('Log In'),
               ),
               const SizedBox(height: 24),
-              TextButton(
-                onPressed: () {
-                  // TODO: Implement Forgot Password flow
-                },
-                child: const Text('Forgot Password?',
-                    style: TextStyle(color: AppColors.primary)),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordScreen(),
+                    ));
+                  },
+                  child: const Text('Forgot Password?'),
+                ),
               ),
               const SizedBox(height: 8),
               RichText(

@@ -1,8 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="sportifycu"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- TODO: Replace with your actual Google Maps API Key -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyAjfO4G7x2TW-y1XuRtK80U3T260O5c-NA"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
