@@ -9,6 +9,7 @@ import 'package:sportify_app/models/gym.dart';
 import 'package:sportify_app/presentation/screens/gym_details_screen.dart';
 import 'package:sportify_app/presentation/screens/profile/notifications_screen.dart';
 import 'package:sportify_app/providers/notification_provider.dart';
+import 'package:sportify_app/presentation/screens/sidebar/ai_coach_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -104,23 +105,83 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildAdsCarousel(),
-            const SizedBox(height: 24),
-            const _SectionTitle(title: 'Around you'),
-            const SizedBox(height: 16),
-            _buildStaticNearbyGyms(),
-            const SizedBox(height: 24),
-            const _SectionTitle(title: 'Activities'),
-            const SizedBox(height: 16),
-            _buildActivitiesSection(),
-            const SizedBox(height: 24),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _buildAdsCarousel(),
+                const SizedBox(height: 24),
+                const _SectionTitle(title: 'Around you'),
+                const SizedBox(height: 16),
+                _buildStaticNearbyGyms(),
+                const SizedBox(height: 24),
+                const _SectionTitle(title: 'Activities'),
+                const SizedBox(height: 16),
+                _buildActivitiesSection(),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 32,
+            right: 24,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AiCoachScreen()),
+                );
+              },
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Material(
+                    elevation: 6,
+                    shape: const CircleBorder(),
+                    color: AppColors.primary,
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.smart_toy, // AI/robot icon
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 60,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Text(
+                        'AI Coach Chat',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

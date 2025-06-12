@@ -6,6 +6,7 @@ import 'package:sportify_app/providers/group_activity_provider.dart';
 import 'package:sportify_app/providers/leaderboard_provider.dart';
 import 'package:sportify_app/providers/notification_provider.dart';
 import 'package:sportify_app/providers/theme_provider.dart';
+import 'package:sportify_app/providers/chat_provider.dart';
 import 'package:sportify_app/presentation/screens/splash_screen.dart';
 import 'package:sportify_app/presentation/theme/app_theme.dart';
 import 'package:sportify_app/presentation/screens/auth/welcome_screen.dart';
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LeaderboardProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles # Import StaticFiles
 import os # For path joining
 
-from .routers import auth_router, users_router, gyms_router, activity_teams_router, leaderboard_router
+from .routers import auth_router, users_router, gyms_router, activity_teams_router, leaderboard_router, ai_coach_router
 
 # Potentially, define app metadata
 app_metadata = {
@@ -59,6 +59,7 @@ app.include_router(users_router.router)
 app.include_router(gyms_router.router)
 app.include_router(activity_teams_router.router)
 app.include_router(leaderboard_router.router)
+app.include_router(ai_coach_router.router)
 
 @app.get("/", tags=["Root"])
 async def read_root():

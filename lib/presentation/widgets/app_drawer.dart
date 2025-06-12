@@ -10,6 +10,7 @@ import 'package:sportify_app/presentation/screens/search_screen.dart';
 import 'package:sportify_app/presentation/screens/profile/profile_screen.dart';
 import 'package:sportify_app/presentation/screens/sidebar/leaderboard_screen.dart';
 import 'package:sportify_app/presentation/screens/activity/group_activities_screen.dart';
+import 'package:sportify_app/presentation/screens/sidebar/ai_coach_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -52,6 +53,16 @@ class AppDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) => const GroupActivitiesScreen(),
+                    ));
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.chat_bubble_outline,
+                  title: 'AI Coach',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AiCoachScreen(),
                     ));
                   },
                 ),
