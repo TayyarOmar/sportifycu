@@ -104,13 +104,9 @@ class _TopPlayerWidget extends StatelessWidget {
   final LeaderboardEntry entry;
   final int rank;
   final Color color;
-  final double? height;
 
   const _TopPlayerWidget(
-      {required this.entry,
-      required this.rank,
-      required this.color,
-      this.height});
+      {required this.entry, required this.rank, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +123,6 @@ class _TopPlayerWidget extends StatelessWidget {
 
     return Container(
       width: 100,
-      height: height,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,

@@ -15,14 +15,17 @@ class _Geolocation {
 // A mock of the Position object
 class _Position {
   final _Coordinates? coords;
-  _Position({this.coords});
+
+  // Allow passing mocked coordinates; defaults to null when not provided.
+  const _Position({this.coords});
 }
 
 // A mock of the Coordinates object
 class _Coordinates {
   final double? latitude;
   final double? longitude;
-  _Coordinates({this.latitude, this.longitude});
+
+  const _Coordinates({this.latitude, this.longitude});
 }
 
 // A mock of the Navigator object
