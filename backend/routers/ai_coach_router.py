@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 MAX_TURNS = 10  # user+assistant pairs
-MAX_MSG_CHARS = 500
+MAX_MSG_CHARS = 50000
 
 class ChatMessage(BaseModel):
     role: str = Field(..., pattern="^(user|assistant)$")

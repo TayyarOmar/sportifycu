@@ -226,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _StaticGym(
           gymId: '2',
           name: 'X Gym',
-          location: 'Amman',
+          location: 'Aqaba',
           imagePath: 'assets/images/Xgymcover.jpg'),
       _StaticGym(
           gymId: '3',
@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _StaticGym(
           gymId: '1',
           name: 'Grams Gym',
-          location: 'Amman',
+          location: 'Irbid',
           imagePath: 'assets/images/GramsGymExplore.png'),
     ];
 

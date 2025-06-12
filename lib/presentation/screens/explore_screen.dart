@@ -36,7 +36,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _StaticGym(
       gymId: '1', // Grams Gym ID
       name: 'Grams Gym 24/7',
-      location: 'Amman',
+      location: 'Irbid',
       imagePath: 'assets/images/GramsGymExplore.png',
       coords: LatLng(
         getDummyGymData('1')['location']['lat'],
@@ -46,7 +46,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _StaticGym(
       gymId: '2', // X Gym ID
       name: 'X Gym',
-      location: 'Amman',
+      location: 'Aqaba',
       imagePath: 'assets/images/Xgymcover.jpg',
       coords: LatLng(
         getDummyGymData('2')['location']['lat'],
