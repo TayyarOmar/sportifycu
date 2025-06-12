@@ -7,6 +7,7 @@ import 'package:sportify_app/providers/group_activity_provider.dart';
 import 'package:sportify_app/presentation/screens/activity/team_details_screen.dart';
 import 'package:sportify_app/utils/app_colors.dart';
 import 'package:sportify_app/presentation/widgets/auth_text_field.dart';
+import 'package:sportify_app/providers/notification_provider.dart';
 
 class CreateTeamScreen extends StatefulWidget {
   final String category;
@@ -202,6 +203,9 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
       );
 
       if (newTeam != null) {
+        Provider.of<NotificationProvider>(context, listen: false)
+            .addNotification(
+                'Team Created', 'Your team "${newTeam.name}" has been created');
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (_) =>
               TeamDetailsScreen(team: newTeam, isNewlyCreated: true),

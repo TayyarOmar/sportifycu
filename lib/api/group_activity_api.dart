@@ -147,6 +147,28 @@ class GroupActivityApi {
     }
   }
 
+  // Cancel a booking
+  Future<void> cancelBooking(String teamId) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/activity-teams/$teamId/bookings');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+          'Failed to cancel booking. Status: ${response.statusCode} Body: ${response.body}');
+    }
+  }
+
   // Delete a team
   Future<void> deleteTeam(String teamId) async {
     final token = await _getToken();

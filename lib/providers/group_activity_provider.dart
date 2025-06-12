@@ -151,6 +151,24 @@ class GroupActivityProvider with ChangeNotifier {
       await _groupActivityApi.bookTeam(teamId);
       // Refetch user bookings to update the UI
       await fetchUserBookings();
+      await fetchActiveTeams();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Cancel booking
+  Future<bool> cancelBooking(String teamId) async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      await _groupActivityApi.cancelBooking(teamId);
+      await fetchUserBookings();
+      await fetchActiveTeams();
       return true;
     } catch (e) {
       _setError(e.toString());

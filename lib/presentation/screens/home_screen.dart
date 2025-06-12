@@ -7,6 +7,8 @@ import 'package:sportify_app/presentation/screens/search_screen.dart';
 import 'package:sportify_app/utils/app_colors.dart';
 import 'package:sportify_app/models/gym.dart';
 import 'package:sportify_app/presentation/screens/gym_details_screen.dart';
+import 'package:sportify_app/presentation/screens/profile/notifications_screen.dart';
+import 'package:sportify_app/providers/notification_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,7 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // No longer fetching data on init
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gymProv = Provider.of<GymProvider>(context, listen: false);
+      if (gymProv.allGyms.isEmpty) {
+        gymProv.fetchAllGyms();
+      }
+    });
   }
 
   @override
@@ -54,10 +62,42 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {
-              // TODO: Implement notifications screen
+          Consumer<NotificationProvider>(
+            builder: (context, notifProv, _) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none),
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const NotificationsScreen(),
+                      ));
+                    },
+                  ),
+                  if (notifProv.unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints:
+                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          notifProv.unreadCount > 9
+                              ? '9+'
+                              : notifProv.unreadCount.toString(),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 10),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
         ],
@@ -245,12 +285,19 @@ class _GymCard extends StatelessWidget {
       }
 
       final isFav = authProvider.user!.favourites.contains(backendId);
+      final notifProvider =
+          Provider.of<NotificationProvider>(ctx, listen: false);
+
       if (isFav) {
         await authProvider.removeFavorite(backendId);
+        notifProvider.addNotification(
+            'Gym Unfavorited', '${gym.name} removed from your favourites');
         ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(content: Text('Removed from favourites.')));
       } else {
         await authProvider.addFavorite(backendId);
+        notifProvider.addNotification(
+            'Gym Favorited', '${gym.name} added to your favourites');
         ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(content: Text('Added to favourites!')));
       }

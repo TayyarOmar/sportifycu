@@ -7,6 +7,7 @@ import 'package:sportify_app/providers/group_activity_provider.dart';
 import 'package:sportify_app/presentation/screens/activity/edit_team_screen.dart';
 import 'package:sportify_app/utils/app_colors.dart';
 import 'package:sportify_app/utils/constants.dart';
+import 'package:sportify_app/providers/notification_provider.dart';
 
 class TeamDetailsScreen extends StatefulWidget {
   final GroupActivityTeam team;
@@ -95,30 +96,83 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                 child: const Text('Delete'),
               ),
             ] else ...[
-              ElevatedButton(
-                onPressed: () async {
-                  final provider = Provider.of<GroupActivityProvider>(context,
-                      listen: false);
-                  final success = await provider.bookTeam(_currentTeam.teamId);
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Successfully booked your spot!')),
-                    );
-                    Navigator.of(context).pop(); // Go back after booking
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Failed to book: ${provider.errorMessage ?? 'Please try again'}')),
-                    );
-                  }
+              Consumer<AuthProvider>(
+                builder: (context, authProv, _) {
+                  final alreadyBooked =
+                      authProv.user?.bookings.contains(_currentTeam.teamId) ==
+                              true ||
+                          _currentTeam.playersEnrolled
+                              .contains(authProv.user?.userId);
+                  final isFull = _currentTeam.currentPlayersCount >=
+                      _currentTeam.playersNeeded;
+
+                  return ElevatedButton(
+                    onPressed: isFull
+                        ? null
+                        : () async {
+                            final provider = Provider.of<GroupActivityProvider>(
+                                context,
+                                listen: false);
+                            if (alreadyBooked) {
+                              // cancel booking
+                              final success = await provider
+                                  .cancelBooking(_currentTeam.teamId);
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Booking cancelled.')));
+                                Provider.of<NotificationProvider>(context,
+                                        listen: false)
+                                    .addNotification('Booking Cancelled',
+                                        'You left team "${_currentTeam.name}"');
+                                await Provider.of<AuthProvider>(context,
+                                        listen: false)
+                                    .fetchCurrentUser();
+                                Navigator.of(context).pop();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(
+                                        'Failed: ${provider.errorMessage ?? ''}')));
+                              }
+                              return;
+                            }
+                            final success =
+                                await provider.bookTeam(_currentTeam.teamId);
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Successfully booked your spot!')),
+                              );
+                              Provider.of<NotificationProvider>(context,
+                                      listen: false)
+                                  .addNotification('Team Joined',
+                                      'You joined team "${_currentTeam.name}"');
+                              await Provider.of<AuthProvider>(context,
+                                      listen: false)
+                                  .fetchCurrentUser();
+                              Navigator.of(context).pop();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Failed to book: ${provider.errorMessage ?? 'Please try again'}')),
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      isFull
+                          ? 'Team Full'
+                          : alreadyBooked
+                              ? 'Cancel Booking'
+                              : 'Book Now',
+                    ),
+                  );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Book Now'),
               )
             ],
             const SizedBox(height: 20),
@@ -162,6 +216,9 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Team deleted successfully.')),
                   );
+                  Provider.of<NotificationProvider>(context, listen: false)
+                      .addNotification(
+                          'Team Deleted', 'Your team has been deleted');
                   Navigator.of(context).pop(); // Go back from details screen
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -7,6 +7,7 @@ import 'package:sportify_app/utils/dummy_data.dart'; // To get gym coordinates
 import 'package:provider/provider.dart';
 import 'package:sportify_app/providers/gym_provider.dart';
 import 'package:sportify_app/providers/auth_provider.dart';
+import 'package:sportify_app/providers/notification_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -58,6 +59,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     _createMarkers();
+
+    // Prefetch gyms so we can resolve favourites accurately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gymProv = Provider.of<GymProvider>(context, listen: false);
+      if (gymProv.allGyms.isEmpty) {
+        gymProv.fetchAllGyms();
+      }
+    });
   }
 
   void _createMarkers() {
@@ -178,12 +187,18 @@ class _GymCard extends StatelessWidget {
       }
 
       final isFav = authProvider.user!.favourites.contains(backendId);
+      final notifProvider =
+          Provider.of<NotificationProvider>(ctx, listen: false);
       if (isFav) {
         await authProvider.removeFavorite(backendId);
+        notifProvider.addNotification(
+            'Gym Unfavorited', '${gym.name} removed from your favourites');
         ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(content: Text('Removed from favourites.')));
       } else {
         await authProvider.addFavorite(backendId);
+        notifProvider.addNotification(
+            'Gym Favorited', '${gym.name} added to your favourites');
         ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(content: Text('Added to favourites!')));
       }

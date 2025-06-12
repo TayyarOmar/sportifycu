@@ -4,6 +4,7 @@ import 'package:sportify_app/models/gym.dart';
 import 'package:sportify_app/models/user.dart';
 import 'package:sportify_app/providers/auth_provider.dart';
 import 'package:sportify_app/providers/gym_provider.dart';
+import 'package:sportify_app/providers/notification_provider.dart';
 import 'package:sportify_app/utils/app_colors.dart';
 import 'package:sportify_app/utils/dummy_data.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -128,9 +129,13 @@ class _GymDetailsScreenState extends State<GymDetailsScreen>
                   return;
                 }
                 bool success = true;
+                final notifProvider =
+                    Provider.of<NotificationProvider>(context, listen: false);
                 if (isFavorite) {
                   try {
                     await authProvider.removeFavorite(backendId);
+                    notifProvider.addNotification('Gym Unfavorited',
+                        '${widget.gym.name} removed from your favourites');
                   } catch (e) {
                     success = false;
                   }
@@ -143,6 +148,8 @@ class _GymDetailsScreenState extends State<GymDetailsScreen>
                 } else {
                   try {
                     await authProvider.addFavorite(backendId);
+                    notifProvider.addNotification('Gym Favorited',
+                        '${widget.gym.name} added to your favourites');
                   } catch (e) {
                     success = false;
                   }

@@ -255,4 +255,40 @@ def get_user_achievements_db(user_id: str) -> Optional[List[str]]:
     user = get_user_by_id(user_id)
     if user:
         return user.achievements
-    return None 
+    return None
+
+# === Booking cancellation ===
+def remove_booking_from_user_and_team(user_id: str, team_id: str) -> bool:
+    """Cancel a booking: remove team from user's bookings and user from team's roster."""
+    user = get_user_by_id(user_id)
+    team = get_group_activity_team_by_id(team_id)
+
+    if not user or not team:
+        return False  # Either entity not found
+
+    # Ensure booking exists
+    if team_id not in user.bookings or user_id not in team.players_enrolled:
+        return False  # Nothing to cancel
+
+    # Update user record
+    user.bookings.remove(team_id)
+    UserTable.update({"bookings": user.bookings}, Query().user_id == user_id)
+
+    # Update team record
+    team.players_enrolled.remove(user_id)
+    # Safeguard against negative counts
+    team.current_players_count = max(0, team.current_players_count - 1)
+    # If team was full and now has space, mark active again
+    if team.status == "filled" and team.current_players_count < team.players_needed:
+        team.status = "active"
+
+    GroupActivityTeamTable.update(
+        {
+            "players_enrolled": team.players_enrolled,
+            "current_players_count": team.current_players_count,
+            "status": team.status,
+        },
+        Query().team_id == team_id,
+    )
+
+    return True 

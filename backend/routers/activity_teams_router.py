@@ -181,4 +181,26 @@ async def add_booking_for_team(
              raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Team status changed or filled before booking completed.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create booking.")
     
-    return schemas.MessageResponse(message=f"Successfully booked for team: {team.name}") 
+    return schemas.MessageResponse(message=f"Successfully booked for team: {team.name}")
+
+# === Cancel booking ===
+@router.delete("/{team_id}/bookings", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_booking_for_team(
+    team_id: str,
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Cancel the current user's booking from an activity team."""
+    team = crud.get_group_activity_team_by_id(team_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity team not found.")
+
+    # User must have an existing booking to cancel
+    if team_id not in current_user.bookings:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not booked for this team.")
+
+    success = crud.remove_booking_from_user_and_team(user_id=current_user.user_id, team_id=team_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not cancel booking.")
+
+    # 204 will return no body automatically
+    return 
