@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sportify_app/models/gym.dart';
 import 'package:sportify_app/models/user.dart';
 import 'package:sportify_app/providers/auth_provider.dart';
+import 'package:sportify_app/providers/gym_provider.dart';
 import 'package:sportify_app/utils/app_colors.dart';
 import 'package:sportify_app/utils/dummy_data.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -102,21 +103,54 @@ class _GymDetailsScreenState extends State<GymDetailsScreen>
             final isFavorite =
                 authProvider.user?.favourites.contains(widget.gym.gymId) ??
                     false;
+            String? _resolveBackendGymId() {
+              final allGyms =
+                  Provider.of<GymProvider>(context, listen: false).allGyms;
+              for (final g in allGyms) {
+                final s1 = g.name.toLowerCase();
+                final s2 = widget.gym.name.toLowerCase();
+                if (s1.contains(s2) || s2.contains(s1)) return g.gymId;
+              }
+              return null;
+            }
+
             return IconButton(
               icon: Icon(
                 isFavorite ? Icons.bookmark : Icons.bookmark_border,
                 color: isFavorite ? AppColors.primary : Colors.white,
               ),
               onPressed: () async {
-                if (isFavorite) {
-                  await authProvider.removeFavorite(widget.gym.gymId);
+                final backendId = _resolveBackendGymId();
+                if (backendId == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Removed from favorites!')),
+                    const SnackBar(content: Text('Gym not found on server.')),
+                  );
+                  return;
+                }
+                bool success = true;
+                if (isFavorite) {
+                  try {
+                    await authProvider.removeFavorite(backendId);
+                  } catch (e) {
+                    success = false;
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(success
+                            ? 'Removed from favorites!'
+                            : 'Failed to remove favorite.')),
                   );
                 } else {
-                  await authProvider.addFavorite(widget.gym.gymId);
+                  try {
+                    await authProvider.addFavorite(backendId);
+                  } catch (e) {
+                    success = false;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to favorites!')),
+                    SnackBar(
+                        content: Text(success
+                            ? 'Added to favorites!'
+                            : 'Failed to add favorite.')),
                   );
                 }
               },

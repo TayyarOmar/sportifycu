@@ -209,74 +209,148 @@ class _GymCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Create a full Gym object to pass to the details screen.
-        // The details screen primarily uses the gymId from this object.
-        final gymForNav = Gym(
-          gymId: gym.gymId,
-          name: gym.name,
-          location: gym.location,
-          services: [], // Dummy data, not used on details screen
-          gendersAccepted: [], // Dummy data
-          subscriptions: [], // Dummy data
+    // Helper to resolve backend gymId by name
+    String? _resolveBackendGymId(BuildContext ctx) {
+      final allGyms = Provider.of<GymProvider>(ctx, listen: false).allGyms;
+      final staticLower = gym.name.toLowerCase();
+      for (final g in allGyms) {
+        final dbLower = g.name.toLowerCase();
+        if (dbLower.contains(staticLower) || staticLower.contains(dbLower)) {
+          return g.gymId;
+        }
+      }
+      return null;
+    }
+
+    void _toggleFavourite(BuildContext ctx) async {
+      final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
+      if (!authProvider.isLoggedIn) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          const SnackBar(content: Text('Please log in to add favourites.')),
         );
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => GymDetailsScreen(gym: gymForNav),
-        ));
-      },
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: SizedBox(
-          width: 250,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.asset(
-                gym.imagePath,
-                fit: BoxFit.cover,
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7)
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+        return;
+      }
+
+      final gymProvider = Provider.of<GymProvider>(ctx, listen: false);
+      if (gymProvider.allGyms.isEmpty) {
+        await gymProvider.fetchAllGyms();
+      }
+
+      String? backendId = _resolveBackendGymId(ctx);
+      if (backendId == null) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          const SnackBar(content: Text('Gym not found on server.')),
+        );
+        return;
+      }
+
+      final isFav = authProvider.user!.favourites.contains(backendId);
+      if (isFav) {
+        await authProvider.removeFavorite(backendId);
+        ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(content: Text('Removed from favourites.')));
+      } else {
+        await authProvider.addFavorite(backendId);
+        ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(content: Text('Added to favourites!')));
+      }
+    }
+
+    return Consumer2<AuthProvider, GymProvider>(
+      builder: (context, authProvider, gymProvider, child) {
+        final backendId = _resolveBackendGymId(context);
+        final isFavorite = backendId != null &&
+            authProvider.user?.favourites.contains(backendId) == true;
+
+        return GestureDetector(
+          onTap: () {
+            final gymForNav = Gym(
+              gymId: gym.gymId,
+              name: gym.name,
+              location: gym.location,
+              services: [],
+              gendersAccepted: [],
+              subscriptions: [],
+            );
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => GymDetailsScreen(gym: gymForNav),
+            ));
+          },
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: SizedBox(
+              width: 250,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    gym.imagePath,
+                    fit: BoxFit.cover,
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(gym.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(color: Colors.white)),
-                      Text(gym.location,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(color: Colors.white70)),
-                    ],
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7)
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
-                ),
+                  // Favourite icon
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => _toggleFavourite(context),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black54,
+                        child: Icon(
+                          isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                          color: isFavorite ? AppColors.primary : Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Name and location overlay
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(gym.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(color: Colors.white)),
+                          Text(gym.location,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
